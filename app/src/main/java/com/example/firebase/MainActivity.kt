@@ -53,6 +53,7 @@ class MainActivity : ComponentActivity() {
             //Navegar a la home
         }
     }
+
 }
 
 
