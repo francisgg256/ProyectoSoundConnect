@@ -4,30 +4,44 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import com.example.firebase.presentation.auth.AuthViewModel
 import com.example.firebase.presentation.homescreen.HomeScreen
 import com.example.firebase.presentation.homescreen.HomeViewmodel
 import com.example.firebase.presentation.initial.InitialScreen
 import com.example.firebase.presentation.login.LoginScreen
 import com.example.firebase.presentation.signup.SignupScreen
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
-fun NavigationWrapper(navHostController: NavHostController, auth: FirebaseAuth, homeViewModel: HomeViewmodel) {
-    NavHost(navHostController,startDestination="Initial"){
-        composable("Initial"){
+fun NavigationWrapper(
+    navHostController: NavHostController, 
+    authViewModel: AuthViewModel, 
+    homeViewModel: HomeViewmodel
+) {
+    // RA 1: Arquitectura robusta - El destino inicial se decide por el estado de la sesión
+    val startRoute = if (authViewModel.isUserLoggedIn()) "home" else "Initial"
+
+    NavHost(navHostController, startDestination = startRoute) {
+        composable("Initial") {
             InitialScreen(
-                navigateToLogin = {navHostController.navigate("Login")},
-                navigateToSignUp = {navHostController.navigate("Signup")}
+                navigateToLogin = { navHostController.navigate("Login") },
+                navigateToSignUp = { navHostController.navigate("Signup") }
             )
         }
-        composable("Login"){
-            LoginScreen(auth, navigateToHome = {navHostController.navigate("home")})
+        composable("Login") {
+            LoginScreen(authViewModel, navigateToHome = { 
+                navHostController.navigate("home") {
+                    popUpTo("Initial") { inclusive = true }
+                }
+            })
         }
-        composable("Signup"){
-            SignupScreen(auth)
+        composable("Signup") {
+            SignupScreen(authViewModel, navigateToHome = {
+                navHostController.navigate("home") {
+                    popUpTo("Initial") { inclusive = true }
+                }
+            })
         }
-        composable("home"){
+        composable("home") {
             HomeScreen(homeViewModel)
         }
     }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "932634519820",
+    "project_id": "soundconnect-3c760",
+    "storage_bucket": "soundconnect-3c760.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:932634519820:android:00762fed75e969c4e84129",
+        "android_client_info": {
+          "package_name": "com.example.firebase"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwzQ8dI6EinUWxGFOyQCmDH6_FdsJfaNg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

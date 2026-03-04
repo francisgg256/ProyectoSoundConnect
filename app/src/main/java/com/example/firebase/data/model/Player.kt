@@ -1,3 +1,6 @@
 package com.example.firebase.data.model
 
-data class Player(val artist: Artist? = null, val play:Boolean? = null)
+data class Player(
+    val artist: Artist? = null,
+    val play:Boolean? = null
+)

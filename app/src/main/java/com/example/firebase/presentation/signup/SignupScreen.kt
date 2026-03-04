@@ -2,6 +2,7 @@ package com.example.firebase.presentation.signup
 
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,13 +29,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.firebase.R
+import com.example.firebase.presentation.auth.AuthViewModel
 import com.example.firebase.ui.theme.Black
 import com.example.firebase.ui.theme.SelectedField
 import com.example.firebase.ui.theme.UnselectedField
-import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun SignupScreen(auth: FirebaseAuth) {
+fun SignupScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateBack: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -54,6 +55,7 @@ fun SignupScreen(auth: FirebaseAuth) {
                 modifier = Modifier
                     .padding(vertical = 24.dp)
                     .size(24.dp)
+                    .clickable { navigateBack() }
             )
             Spacer(modifier = Modifier.weight(1f))
         }
@@ -80,14 +82,17 @@ fun SignupScreen(auth: FirebaseAuth) {
         )
         Spacer(Modifier.height(48.dp))
         Button(onClick = {
-            auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener{ task ->
-                if(task.isSuccessful){
+            viewModel.signUp(
+                email = email,
+                password = password,
+                onSuccess = {
                     Log.i("Ignacio", "Registro OK")
-                }else{
-                    //Error
+                    navigateToHome()
+                },
+                onError = {
                     Log.i("Ignacio", "Registro KO")
                 }
-            }
+            )
         }) {
             Text(text = "Sign Up")
         }

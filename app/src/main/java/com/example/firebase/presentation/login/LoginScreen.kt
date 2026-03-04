@@ -2,6 +2,7 @@ package com.example.firebase.presentation.login
 
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,17 +26,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.firebase.R
+import com.example.firebase.presentation.auth.AuthViewModel
 import com.example.firebase.ui.theme.Black
 import com.example.firebase.ui.theme.SelectedField
 import com.example.firebase.ui.theme.UnselectedField
-import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun LoginScreen(auth: FirebaseAuth, navigateToHome: () -> Unit) {
+fun LoginScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateBack: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     Column(
@@ -53,6 +53,7 @@ fun LoginScreen(auth: FirebaseAuth, navigateToHome: () -> Unit) {
                 modifier = Modifier
                     .padding(vertical = 24.dp)
                     .size(24.dp)
+                    .clickable { navigateBack() }
             )
             Spacer(modifier = Modifier.weight(1f))
         }
@@ -79,15 +80,17 @@ fun LoginScreen(auth: FirebaseAuth, navigateToHome: () -> Unit) {
         )
         Spacer(Modifier.height(48.dp))
         Button(onClick = {
-            auth.signInWithEmailAndPassword(email, password).addOnCompleteListener{ task ->
-                if(task.isSuccessful){
+            viewModel.login(
+                email = email,
+                password = password,
+                onSuccess = { 
                     navigateToHome()
                     Log.i("Ignacio", "LOGIN OK")
-                }else{
-                    //Error
+                },
+                onError = { 
                     Log.i("Ignacio", "LOGIN KO")
                 }
-            }
+            )
         }) {
             Text(text = "Login")
         }
