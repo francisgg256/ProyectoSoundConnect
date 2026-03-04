@@ -28,18 +28,26 @@ fun NavigationWrapper(
             )
         }
         composable("Login") {
-            LoginScreen(authViewModel, navigateToHome = { 
-                navHostController.navigate("home") {
-                    popUpTo("Initial") { inclusive = true }
-                }
-            })
+            LoginScreen(
+                viewModel = authViewModel, 
+                navigateToHome = { 
+                    navHostController.navigate("home") {
+                        popUpTo("Initial") { inclusive = true }
+                    }
+                },
+                navigateBack = { navHostController.popBackStack() }
+            )
         }
         composable("Signup") {
-            SignupScreen(authViewModel, navigateToHome = {
-                navHostController.navigate("home") {
-                    popUpTo("Initial") { inclusive = true }
-                }
-            })
+            SignupScreen(
+                viewModel = authViewModel, 
+                navigateToHome = {
+                    navHostController.navigate("home") {
+                        popUpTo("Initial") { inclusive = true }
+                    }
+                },
+                navigateBack = { navHostController.popBackStack() }
+            )
         }
         composable("home") {
             HomeScreen(homeViewModel)

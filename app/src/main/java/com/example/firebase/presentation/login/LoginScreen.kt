@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.firebase.R
@@ -36,6 +37,29 @@ import com.example.firebase.ui.theme.UnselectedField
 
 @Composable
 fun LoginScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateBack: () -> Unit) {
+    LoginContent(
+        onLoginClick = { email, password ->
+            viewModel.login(
+                email = email,
+                password = password,
+                onSuccess = {
+                    navigateToHome()
+                    Log.i("Ignacio", "LOGIN OK")
+                },
+                onError = {
+                    Log.i("Ignacio", "LOGIN KO")
+                }
+            )
+        },
+        navigateBack = navigateBack
+    )
+}
+
+@Composable
+fun LoginContent(
+    onLoginClick: (String, String) -> Unit,
+    navigateBack: () -> Unit
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     Column(
@@ -79,20 +103,14 @@ fun LoginScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateBa
             )
         )
         Spacer(Modifier.height(48.dp))
-        Button(onClick = {
-            viewModel.login(
-                email = email,
-                password = password,
-                onSuccess = { 
-                    navigateToHome()
-                    Log.i("Ignacio", "LOGIN OK")
-                },
-                onError = { 
-                    Log.i("Ignacio", "LOGIN KO")
-                }
-            )
-        }) {
+        Button(onClick = { onLoginClick(email, password) }) {
             Text(text = "Login")
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LoginScreenPreview() {
+    LoginContent(onLoginClick = { _, _ -> }, navigateBack = {})
 }
