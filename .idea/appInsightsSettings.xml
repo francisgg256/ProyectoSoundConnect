@@ -9,9 +9,9 @@
               <option name="connection">
                 <ConnectionSetting>
                   <option name="appId" value="com.example.firebase" />
-                  <option name="mobileSdkAppId" value="1:660829391591:android:8b95186ede34e6378bf042" />
-                  <option name="projectId" value="fir-4408f" />
-                  <option name="projectNumber" value="660829391591" />
+                  <option name="mobileSdkAppId" value="1:932634519820:android:00762fed75e969c4e84129" />
+                  <option name="projectId" value="soundconnect-3c760" />
+                  <option name="projectNumber" value="932634519820" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

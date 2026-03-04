@@ -11,13 +11,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,7 +37,6 @@ import coil.compose.AsyncImage
 import com.example.firebase.R
 import com.example.firebase.data.model.Artist
 import com.example.firebase.data.model.Player
-import com.example.firebase.ui.theme.Black
 import com.example.firebase.ui.theme.Purple40
 
 @Composable
@@ -44,7 +49,8 @@ fun HomeScreen(viewmodel: HomeViewmodel) {
         player = player,
         onArtistClick = { viewmodel.addPlayer(it) },
         onPlayClick = { viewmodel.onPlaySelected() },
-        onCancelClick = { viewmodel.onCancelSelected() }
+        onCancelClick = { viewmodel.onCancelSelected() },
+        onSearch = { viewmodel.searchArtists(it) }
     )
 }
 
@@ -54,26 +60,70 @@ fun HomeScreenContent(
     player: Player?,
     onArtistClick: (Artist) -> Unit,
     onPlayClick: () -> Unit,
-    onCancelClick: () -> Unit
+    onCancelClick: () -> Unit,
+    onSearch: (String) -> Unit
 ) {
+    var searchQuery by remember { mutableStateOf("") }
+
     Column(
         Modifier
             .fillMaxSize()
-            .background(Black)
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        Text(
-            "Popular artist",
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            fontSize = 30.sp,
-            modifier = Modifier.padding(16.dp)
+        // Barra de búsqueda
+        TextField(
+            value = searchQuery,
+            onValueChange = { 
+                searchQuery = it
+                onSearch(it)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            placeholder = { Text("Buscar artista en internet...") },
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.DarkGray,
+                unfocusedContainerColor = Color.DarkGray,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
+            )
         )
-        LazyRow {
-            items(artists) {
-                ArtistItem(artist = it) { onArtistClick(it) }
+
+        Text(
+            text = "Resultados de búsqueda",
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.Bold,
+            fontSize = 24.sp,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+
+        // CUMPLIMOS REQUISITO: LazyColumn en lugar de LazyRow
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            items(artists) { artist ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onArtistClick(artist) }
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AsyncImage(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clip(CircleShape),
+                        model = artist.image ?: "https://via.placeholder.com/150",
+                        contentDescription = "Artist image"
+                    )
+                    Spacer(modifier = Modifier.size(16.dp))
+                    Text(
+                        text = artist.name.orEmpty(),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontSize = 20.sp
+                    )
+                }
             }
         }
-        Spacer(modifier = Modifier.weight(1f))
+        
         player?.let { PlayerComponent(it, onPlayClick, onCancelClick) }
     }
 }
@@ -113,24 +163,6 @@ fun PlayerComponent(player: Player, onPlaySelected: () -> Unit, onCancelSelected
     }
 }
 
-@Composable
-fun ArtistItem(artist: Artist, onItemSelected: () -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable(onClick = onItemSelected)
-    ) {
-        AsyncImage(
-            modifier = Modifier
-                .size(60.dp)
-                .clip(CircleShape),
-            model = artist.image,
-            contentDescription = "Artists image",
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(text = artist.name.orEmpty(), color = Color.White)
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
@@ -145,6 +177,7 @@ fun HomeScreenPreview() {
         player = player,
         onArtistClick = {},
         onPlayClick = {},
-        onCancelClick = {}
+        onCancelClick = {},
+        onSearch = {}
     )
 }

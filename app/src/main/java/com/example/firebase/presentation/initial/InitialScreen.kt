@@ -35,66 +35,96 @@ import com.example.firebase.ui.theme.BackgroundButton
 import com.example.firebase.ui.theme.Black
 import com.example.firebase.ui.theme.Gray
 import com.example.firebase.ui.theme.ShapeButton
-@Preview
+
 @Composable
-fun InitialScreen(navigateToLogin: ()->Unit={},navigateToSignUp:()->Unit={}) {
-    Column(modifier= Modifier
-        .fillMaxSize()
-        .background(Brush.verticalGradient(listOf(Gray, Black), startY = 0f, endY = 600f)),
-        horizontalAlignment = Alignment.CenterHorizontally)
-    {
+fun InitialScreen(
+    navigateToLogin: () -> Unit = {},
+    navigateToSignUp: () -> Unit = {},
+    onGoogleLoginClick: () -> Unit = {},
+    onFacebookLoginClick: () -> Unit = {}
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(Gray, Black), startY = 0f, endY = 600f)),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Spacer(modifier = Modifier.weight(1f))
-        Image(painter = painterResource(R.drawable.spotify),
-            contentDescription = "",
-            modifier = Modifier.clip(
-                CircleShape
-            ))
+        
+        Image(
+            painter = painterResource(R.drawable.spotify),
+            contentDescription = "Logo",
+            modifier = Modifier.clip(CircleShape).size(100.dp)
+        )
+        
         Spacer(modifier = Modifier.weight(1f))
-        Text("Millions of songs.", color= Color.White,
-            fontSize = 38.sp,
-            fontWeight = FontWeight.Bold)
-        Text("Free on Spotify", color= Color.White,
-            fontSize = 38.sp,
-            fontWeight = FontWeight.Bold)
+        
+        Text("Millones de canciones.", color = Color.White, fontSize = 38.sp, fontWeight = FontWeight.Bold)
+        
+        // CORRECCIÓN DE MARCA: Usamos SoundConnect en lugar de Spotify
+        Text("Gratis en SoundConnect", color = Color.White, fontSize = 38.sp, fontWeight = FontWeight.Bold)
+        
         Spacer(modifier = Modifier.weight(1f))
-        Button(onClick = {navigateToSignUp()},
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .padding(horizontal = 32.dp), colors = ButtonDefaults.buttonColors(containerColor = Green)){
-            Text(text = "Sign up free", color = Color.Black,fontWeight = FontWeight.Bold)
+        
+        Button(
+            onClick = { navigateToSignUp() },
+            modifier = Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 32.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Green)
+        ) {
+            Text(text = "Regístrate gratis", color = Color.Black, fontWeight = FontWeight.Bold)
         }
+        
         Spacer(modifier = Modifier.height(8.dp))
-        CustomButton(Modifier.fillMaxWidth()
-            .height(48.dp)
-            .padding(horizontal = 32.dp)
-            .background(BackgroundButton)
-            .border(2.dp, ShapeButton, CircleShape)
-            , painterResource(R.drawable.google), "Continue with Google")
+        
+        CustomButton(
+            Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 32.dp)
+                .background(BackgroundButton).border(2.dp, ShapeButton, CircleShape)
+                .clickable { onGoogleLoginClick() },
+            painterResource(R.drawable.google), 
+            "Continuar con Google"
+        )
+        
         Spacer(modifier = Modifier.height(8.dp))
-        CustomButton(Modifier.fillMaxWidth()
-            .height(48.dp)
-            .padding(horizontal = 32.dp)
-            .background(BackgroundButton)
-            .border(2.dp, ShapeButton, CircleShape)
-            , painterResource(R.drawable.facebook), "Continue with Facebook")
-        Text(text="Log In", color = Color.White, modifier = Modifier
-            .padding(24.dp)
-            .clickable{navigateToLogin()}, fontWeight = FontWeight.Bold)
+        
+        CustomButton(
+            Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 32.dp)
+                .background(BackgroundButton).border(2.dp, ShapeButton, CircleShape)
+                .clickable { onFacebookLoginClick() },
+            painterResource(R.drawable.facebook), 
+            "Continuar con Facebook"
+        )
+        
+        Text(
+            text = "Iniciar Sesión", 
+            color = Color.White, 
+            modifier = Modifier.padding(24.dp).clickable { navigateToLogin() }, 
+            fontWeight = FontWeight.Bold
+        )
+        
         Spacer(modifier = Modifier.weight(1f))
     }
 }
 
 @Composable
-fun CustomButton(modificer: Modifier, painter: Painter, title: String){
-    Box(modifier = modificer, contentAlignment = Alignment.CenterStart){
-        Image(painter = painter,
+fun CustomButton(modifier: Modifier, painter: Painter, title: String) {
+    Box(modifier = modifier, contentAlignment = Alignment.CenterStart) {
+        Image(
+            painter = painter,
             contentDescription = "",
-            modifier = Modifier.padding(start=16.dp).size(16.dp))
-        Text(text=title,
+            modifier = Modifier.padding(start = 16.dp).size(16.dp)
+        )
+        Text(
+            text = title,
             color = Color.White,
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Bold)
+            fontWeight = FontWeight.Bold
+        )
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun InitialScreenPreview() {
+    InitialScreen()
 }

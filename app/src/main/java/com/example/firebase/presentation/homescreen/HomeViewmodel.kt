@@ -5,30 +5,26 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.firebase.data.model.Artist
 import com.example.firebase.data.model.Player
+import com.example.firebase.data.repository.MusicRepository // Importamos tu repositorio
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.compose
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 
-class HomeViewmodel : ViewModel() {
-    private var db: FirebaseFirestore = Firebase.firestore
+// Pasamos el repositorio por el constructor (Clean Architecture)
+class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() {
+
+    // Ya no usamos FirebaseFirestore aquí.
 
     private var database: FirebaseDatabase = Firebase.database
-
 
     private val _artist = MutableStateFlow<List<Artist>>(emptyList())
     val artist: StateFlow<List<Artist>> = _artist
@@ -36,38 +32,38 @@ class HomeViewmodel : ViewModel() {
     private val _player = MutableStateFlow<Player?>(null)
     val player: StateFlow<Player?> = _player
 
-
     init {
-        getArtists()
-//        repeat(20){
-//            loadData()
-//        }
+        // Al iniciar, buscamos algunos artistas por defecto en la API
+        searchArtists("rock") 
         getPlayer()
     }
-//    private fun loadData(){
-//        val random = (1..10000).random()
-//        val artist = Artist("Random $random", description = "Descripción random núemro $random", image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwyXeKDN29AmZgZPLS7n0Bepe8QmVappBwZCeA3XWEbWNdiDFB")
-//
-//        db.collection("artists").add(artist)
-//    }
+
+    // NUEVA FUNCIÓN: Busca en la API de verdad usando Corrutinas
+    fun searchArtists(query: String) {
+        if (query.isBlank()) return
+        viewModelScope.launch {
+            try {
+                val results = musicRepository.searchArtists(query)
+                _artist.value = results
+            } catch (e: Exception) {
+                Log.e("SoundConnect", "Error buscando en API: ${e.message}")
+            }
+        }
+    }
 
     private fun collectPlayer(): Flow<DataSnapshot> = callbackFlow {
         val listener = object: ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 trySend(snapshot).isSuccess
             }
-
             override fun onCancelled(error: DatabaseError) {
-                Log.i("Ignacio","Error: ${error.message}")
+                Log.i("SoundConnect","Error: ${error.message}")
                 close(error.toException())
             }
         }
-
         val ref = database.reference.child("player")
         ref.addValueEventListener(listener)
-
         awaitClose { ref.removeEventListener(listener) }
-
     }
 
     private fun getPlayer(){
@@ -76,26 +72,6 @@ class HomeViewmodel : ViewModel() {
                 val player = it.getValue(Player::class.java)
                 _player.value = player
             }
-        }
-
-    }
-    private fun getArtists() {
-        viewModelScope.launch {
-            val result: List<Artist> = withContext(Dispatchers.IO) {
-                getAllArtists()
-            }
-            _artist.value = result
-        }
-    }
-
-    private suspend fun getAllArtists(): List<Artist> {
-        return try {
-            db.collection("artists").get().await().documents.mapNotNull { snapshot ->
-                snapshot.toObject(Artist::class.java)
-            }
-        } catch (e: Exception) {
-            Log.i("aris", e.toString())
-            emptyList()
         }
     }
 

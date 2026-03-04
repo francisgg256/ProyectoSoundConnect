@@ -12,7 +12,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.firebase.data.network.RetrofitClient
 import com.example.firebase.data.repository.AuthRepository
+import com.example.firebase.data.repository.MusicRepository
 import com.example.firebase.presentation.ThemeViewModel
 import com.example.firebase.presentation.auth.AuthViewModel
 import com.example.firebase.presentation.homescreen.HomeViewmodel
@@ -27,7 +29,11 @@ class MainActivity : ComponentActivity() {
     // Instanciamos el repositorio y los ViewModels
     private val authRepository by lazy { AuthRepository(Firebase.auth) }
     private val authViewModel by lazy { AuthViewModel(authRepository) }
-    private val homeViewModel = HomeViewmodel()
+    
+    // Inyección manual de dependencias para HomeViewModel
+    private val musicRepository by lazy { MusicRepository(RetrofitClient.apiService) }
+    private val homeViewModel by lazy { HomeViewmodel(musicRepository) }
+
     private val themeViewModel = ThemeViewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
