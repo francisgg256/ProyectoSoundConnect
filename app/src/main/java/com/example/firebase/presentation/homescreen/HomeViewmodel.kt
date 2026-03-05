@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 
 class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() {
 
-    private var database: FirebaseDatabase = Firebase.database
+    private var database: FirebaseDatabase = Firebase.database("https://soundconnect-3c760-default-rtdb.europe-west1.firebasedatabase.app")
     private var mediaPlayer: MediaPlayer? = null
 
     private val _artist = MutableStateFlow<List<Artist>>(emptyList())
@@ -41,6 +41,14 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
 
     private val _musicTags = MutableStateFlow<List<MusicTag>>(emptyList())
     val musicTags: StateFlow<List<MusicTag>> = _musicTags
+
+    // --- PERFIL Y CÁMARA ---
+    private val _profileImage = MutableStateFlow<android.graphics.Bitmap?>(null)
+    val profileImage: StateFlow<android.graphics.Bitmap?> = _profileImage
+
+    fun updateProfileImage(bitmap: android.graphics.Bitmap) {
+        _profileImage.value = bitmap
+    }
 
     init {
         searchArtists("rock")
@@ -96,9 +104,14 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
                 .catch { e ->
                     Log.e("SoundConnect", "Error collecting player: ${e.message}")
                 }
-                .collect {
-                    val player = it.getValue(Player::class.java)
-                    _player.value = player
+                .collect { snapshot ->
+                    try {
+                        // Intentamos leer el objeto
+                        val player = snapshot.getValue(Player::class.java)
+                        _player.value = player
+                    } catch (e: Exception) {
+                        Log.e("SoundConnect", "Fallo al leer Firebase: ${e.message}")
+                    }
                 }
         }
     }
@@ -151,7 +164,15 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
     fun addPlayer(artist: Artist) {
         val ref = database.reference.child("player")
         val player = Player(artist, play = true)
+        
+        // Añadimos detectores para saber si se envía bien o falla
         ref.setValue(player)
+            .addOnSuccessListener {
+                Log.i("SoundConnect", "¡Éxito! Canción guardada en Firebase Europa.")
+            }
+            .addOnFailureListener { error ->
+                Log.e("SoundConnect", "Fallo al guardar en Firebase: ${error.message}")
+            }
 
         viewModelScope.launch(Dispatchers.IO) {
             val artistName = artist.name ?: return@launch
