@@ -14,6 +14,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -30,11 +35,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.firebase.R
+import com.example.firebase.data.local.ArtistEntity
 import com.example.firebase.data.model.Artist
 import com.example.firebase.data.model.Player
 import com.example.firebase.ui.theme.Purple40
@@ -43,25 +48,30 @@ import com.example.firebase.ui.theme.Purple40
 fun HomeScreen(viewmodel: HomeViewmodel) {
     val artists by viewmodel.artist.collectAsState()
     val player by viewmodel.player.collectAsState()
+    val favorites by viewmodel.favorites.collectAsState()
 
     HomeScreenContent(
         artists = artists,
+        favorites = favorites,
         player = player,
         onArtistClick = { viewmodel.addPlayer(it) },
         onPlayClick = { viewmodel.onPlaySelected() },
         onCancelClick = { viewmodel.onCancelSelected() },
-        onSearch = { viewmodel.searchArtists(it) }
+        onSearch = { viewmodel.searchArtists(it) },
+        onFavoriteClick = { viewmodel.onFavoriteClick(it) }
     )
 }
 
 @Composable
 fun HomeScreenContent(
     artists: List<Artist>,
+    favorites: List<ArtistEntity>,
     player: Player?,
     onArtistClick: (Artist) -> Unit,
     onPlayClick: () -> Unit,
     onCancelClick: () -> Unit,
-    onSearch: (String) -> Unit
+    onSearch: (String) -> Unit,
+    onFavoriteClick: (Artist) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
@@ -73,7 +83,7 @@ fun HomeScreenContent(
         // Barra de búsqueda
         TextField(
             value = searchQuery,
-            onValueChange = { 
+            onValueChange = {
                 searchQuery = it
                 onSearch(it)
             },
@@ -97,9 +107,10 @@ fun HomeScreenContent(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
 
-        // CUMPLIMOS REQUISITO: LazyColumn en lugar de LazyRow
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(artists) { artist ->
+                val isFavorite = favorites.any { it.name == artist.name }
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -111,19 +122,28 @@ fun HomeScreenContent(
                         modifier = Modifier
                             .size(60.dp)
                             .clip(CircleShape),
-                        model = artist.image ?: "https://via.placeholder.com/150",
+                        model = artist.image?.lastOrNull()?.url ?: "https://via.placeholder.com/150",
                         contentDescription = "Artist image"
                     )
                     Spacer(modifier = Modifier.size(16.dp))
                     Text(
                         text = artist.name.orEmpty(),
                         color = MaterialTheme.colorScheme.onBackground,
-                        fontSize = 20.sp
+                        fontSize = 20.sp,
+                        modifier = Modifier.weight(1f)
                     )
+
+                    IconButton(onClick = { onFavoriteClick(artist) }) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "Favorite",
+                            tint = if (isFavorite) Color.Red else Color.Gray
+                        )
+                    }
                 }
             }
         }
-        
+
         player?.let { PlayerComponent(it, onPlayClick, onCancelClick) }
     }
 }
@@ -161,23 +181,4 @@ fun PlayerComponent(player: Player, onPlaySelected: () -> Unit, onCancelSelected
                 .clickable(onClick = onCancelSelected)
         )
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    val artistList = listOf(
-        Artist("Artist 1", "Description 1", "https://via.placeholder.com/150"),
-        Artist("Artist 2", "Description 2", "https://via.placeholder.com/150"),
-        Artist("Artist 3", "Description 3", "https://via.placeholder.com/150")
-    )
-    val player = Player(artistList[0], play = true)
-    HomeScreenContent(
-        artists = artistList,
-        player = player,
-        onArtistClick = {},
-        onPlayClick = {},
-        onCancelClick = {},
-        onSearch = {}
-    )
 }

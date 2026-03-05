@@ -3,9 +3,10 @@ package com.example.firebase.presentation.homescreen
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.firebase.data.local.ArtistEntity
 import com.example.firebase.data.model.Artist
 import com.example.firebase.data.model.Player
-import com.example.firebase.data.repository.MusicRepository // Importamos tu repositorio
+import com.example.firebase.data.repository.MusicRepository
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -19,26 +20,23 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 
-// Pasamos el repositorio por el constructor (Clean Architecture)
 class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() {
 
-    // Ya no usamos FirebaseFirestore aquí.
-
     private var database: FirebaseDatabase = Firebase.database
-
     private val _artist = MutableStateFlow<List<Artist>>(emptyList())
     val artist: StateFlow<List<Artist>> = _artist
-
     private val _player = MutableStateFlow<Player?>(null)
     val player: StateFlow<Player?> = _player
 
+    private val _favorites = MutableStateFlow<List<ArtistEntity>>(emptyList())
+    val favorites: StateFlow<List<ArtistEntity>> = _favorites
+
     init {
-        // Al iniciar, buscamos algunos artistas por defecto en la API
-        searchArtists("rock") 
+        searchArtists("rock")
         getPlayer()
+        getFavorites()
     }
 
-    // NUEVA FUNCIÓN: Busca en la API de verdad usando Corrutinas
     fun searchArtists(query: String) {
         if (query.isBlank()) return
         viewModelScope.launch {
@@ -48,6 +46,20 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
             } catch (e: Exception) {
                 Log.e("SoundConnect", "Error buscando en API: ${e.message}")
             }
+        }
+    }
+
+    private fun getFavorites() {
+        viewModelScope.launch {
+            musicRepository.getAllFavorites().collect { favList ->
+                _favorites.value = favList
+            }
+        }
+    }
+
+    fun onFavoriteClick(artist: Artist) {
+        viewModelScope.launch {
+            musicRepository.toggleFavorite(artist)
         }
     }
 

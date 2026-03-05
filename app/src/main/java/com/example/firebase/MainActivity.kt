@@ -12,6 +12,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.firebase.data.local.AppDatabase
 import com.example.firebase.data.network.RetrofitClient
 import com.example.firebase.data.repository.AuthRepository
 import com.example.firebase.data.repository.MusicRepository
@@ -25,13 +26,12 @@ import com.google.firebase.ktx.Firebase
 class MainActivity : ComponentActivity() {
 
     private lateinit var navHostController: NavHostController
-    
-    // Instanciamos el repositorio y los ViewModels
     private val authRepository by lazy { AuthRepository(Firebase.auth) }
     private val authViewModel by lazy { AuthViewModel(authRepository) }
-    
-    // Inyección manual de dependencias para HomeViewModel
-    private val musicRepository by lazy { MusicRepository(RetrofitClient.apiService) }
+    private val appDatabase by lazy { AppDatabase.getDatabase(applicationContext) }
+    private val musicRepository by lazy {
+        MusicRepository(RetrofitClient.apiService, appDatabase.artistDao())
+    }
     private val homeViewModel by lazy { HomeViewmodel(musicRepository) }
 
     private val themeViewModel = ThemeViewModel()
@@ -42,13 +42,12 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             navHostController = rememberNavController()
-            // RA 3: El tema de la app responde dinámicamente al sensor de luz
+
             FirebaseTheme(darkTheme = themeViewModel.isDarkTheme.value) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // Pasamos el authViewModel en lugar del objeto auth directo
                     NavigationWrapper(navHostController, authViewModel, homeViewModel)
                 }
             }
@@ -57,14 +56,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Iniciamos la escucha del sensor de luz
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         themeViewModel.startListening(sensorManager)
     }
 
     override fun onPause() {
         super.onPause()
-        // Detenemos la escucha para ahorrar batería (Buenas prácticas)
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         themeViewModel.stopListening(sensorManager)
     }
