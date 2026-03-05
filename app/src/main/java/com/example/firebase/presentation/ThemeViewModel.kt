@@ -12,8 +12,6 @@ class ThemeViewModel : ViewModel(), SensorEventListener {
 
     private val _isDarkTheme = mutableStateOf(false)
     val isDarkTheme: State<Boolean> = _isDarkTheme
-
-    // RA 3: Sensor de Luz - Umbral para cambio de tema
     private val DARK_THRESHOLD = 10f 
 
     fun startListening(sensorManager: SensorManager) {
@@ -30,7 +28,6 @@ class ThemeViewModel : ViewModel(), SensorEventListener {
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_LIGHT) {
             val lightLevel = event.values[0]
-            // Si hay poca luz ( < 10 lux), activamos modo oscuro
             _isDarkTheme.value = lightLevel < DARK_THRESHOLD
         }
     }

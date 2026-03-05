@@ -43,11 +43,9 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
     private val _musicTags = MutableStateFlow<List<MusicTag>>(emptyList())
     val musicTags: StateFlow<List<MusicTag>> = _musicTags
 
-    // --- PERFIL Y CÁMARA ---
     private val _profileImage = MutableStateFlow<android.graphics.Bitmap?>(null)
     val profileImage: StateFlow<android.graphics.Bitmap?> = _profileImage
 
-    // --- CHAT GLOBAL ---
     private val _chatMessages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val chatMessages: StateFlow<List<ChatMessage>> = _chatMessages
 
@@ -112,7 +110,6 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
                 }
                 .collect { snapshot ->
                     try {
-                        // Intentamos leer el objeto
                         val player = snapshot.getValue(Player::class.java)
                         _player.value = player
                     } catch (e: Exception) {
@@ -170,8 +167,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
     fun addPlayer(artist: Artist) {
         val ref = database.reference.child("player")
         val player = Player(artist, play = true)
-        
-        // Añadimos detectores para saber si se envía bien o falla
+
         ref.setValue(player)
             .addOnSuccessListener {
                 Log.i("SoundConnect", "¡Éxito! Canción guardada en Firebase Europa.")
@@ -195,9 +191,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
         }
     }
 
-    // --- MAPAS Y ETIQUETAS (Firebase) ---
     fun addMusicTag(artistName: String, latLng: LatLng) {
-        // Creamos una nueva referencia en la carpeta "music_tags"
         val ref = database.reference.child("music_tags").push()
 
         val newTag = MusicTag(
@@ -206,13 +200,11 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
             lat = latLng.latitude,
             lng = latLng.longitude
         )
-        // Guardamos en Firebase (esto actualiza a todos los usuarios)
         ref.setValue(newTag)
     }
 
     private fun getMusicTags() {
         val ref = database.reference.child("music_tags")
-        // Escuchamos los cambios en tiempo real
         ref.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val tagsList = mutableListOf<MusicTag>()
@@ -220,7 +212,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
                     val tag = child.getValue(MusicTag::class.java)
                     if (tag != null) tagsList.add(tag)
                 }
-                _musicTags.value = tagsList // Actualizamos el mapa
+                _musicTags.value = tagsList
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -230,12 +222,12 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
     }
 
     fun sendMessage(text: String) {
-        if (text.isBlank()) return // No enviamos mensajes vacíos
+        if (text.isBlank()) return
         
         val ref = database.reference.child("chat_messages").push()
         val newMessage = ChatMessage(
             id = ref.key ?: "",
-            userName = "Amante de la música", // Aquí podríamos poner el nombre del usuario logueado
+            userName = "Amante de la música",
             text = text,
             timestamp = System.currentTimeMillis()
         )
@@ -257,7 +249,6 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
                         messagesList.add(message)
                     }
                 }
-                // Ordenamos para que los más nuevos salgan abajo
                 _chatMessages.value = messagesList.sortedBy { it.timestamp }
             }
 

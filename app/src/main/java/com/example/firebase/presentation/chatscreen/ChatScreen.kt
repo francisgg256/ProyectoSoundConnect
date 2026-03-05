@@ -30,21 +30,19 @@ fun ChatScreen(viewmodel: HomeViewmodel) {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Cabecera
         Text(
-            text = "Chat Global 🌍",
+            text = "Chat Global",
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(16.dp)
         )
 
-        // Lista de mensajes
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
                 .padding(horizontal = 16.dp),
-            reverseLayout = false // Los más nuevos abajo
+            reverseLayout = false
         ) {
             items(messages) { msg ->
                 MessageBubble(
@@ -56,7 +54,6 @@ fun ChatScreen(viewmodel: HomeViewmodel) {
             }
         }
 
-        // Barra para escribir
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -80,7 +77,7 @@ fun ChatScreen(viewmodel: HomeViewmodel) {
             IconButton(
                 onClick = {
                     viewmodel.sendMessage(textToSend)
-                    textToSend = "" // Limpiamos la caja al enviar
+                    textToSend = ""
                 },
                 modifier = Modifier
                     .size(48.dp)

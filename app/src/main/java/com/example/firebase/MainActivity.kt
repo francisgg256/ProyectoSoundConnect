@@ -70,10 +70,8 @@ class MainActivity : ComponentActivity() {
             navHostController = rememberNavController()
 
             FirebaseTheme(darkTheme = themeViewModel.isDarkTheme.value) {
-                // El Scaffold organiza la estructura de la pantalla
                 Scaffold(
                     bottomBar = {
-                        // Solo mostramos la barra si estamos en Home, Map o Chat
                         val navBackStackEntry by navHostController.currentBackStackEntryAsState()
                         val currentRoute = navBackStackEntry?.destination?.route
 
@@ -101,7 +99,6 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 ) { paddingValues ->
-                    // El paddingValues evita que el contenido quede debajo de la barra
                     Surface(
                         modifier = Modifier
                             .fillMaxSize()

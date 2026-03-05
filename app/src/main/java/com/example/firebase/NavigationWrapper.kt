@@ -13,7 +13,6 @@ import com.example.firebase.presentation.signup.SignupScreen
 import com.example.firebase.presentation.mapscreen.MapScreen
 import com.example.firebase.presentation.chatscreen.ChatScreen
 
-// Definición de las rutas
 sealed class Screens(val route: String) {
     object Initial : Screens("initial")
     object Login : Screens("login")

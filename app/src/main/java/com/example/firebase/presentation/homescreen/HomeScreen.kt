@@ -58,11 +58,9 @@ fun HomeScreen(viewmodel: HomeViewmodel) {
     val favorites by viewmodel.favorites.collectAsState()
     val profileImage by viewmodel.profileImage.collectAsState()
 
-    // 1. Creamos el lanzador de la cámara
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap: Bitmap? ->
-        // Si el usuario sacó la foto y no canceló, la guardamos
         if (bitmap != null) {
             viewmodel.updateProfileImage(bitmap)
         }
@@ -72,8 +70,8 @@ fun HomeScreen(viewmodel: HomeViewmodel) {
         artists = artists,
         favorites = favorites,
         player = player,
-        profileImage = profileImage, // Pasamos la foto a la interfaz
-        onCameraClick = { cameraLauncher.launch(null) }, // Al hacer clic, abrimos cámara
+        profileImage = profileImage,
+        onCameraClick = { cameraLauncher.launch(null) },
         onArtistClick = { viewmodel.addPlayer(it) },
         onPlayClick = { viewmodel.onPlaySelected() },
         onCancelClick = { viewmodel.onCancelSelected() },
@@ -102,14 +100,12 @@ fun HomeScreenContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // --- NUEVA CABECERA DE PERFIL ---
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Si hay foto, la mostramos; si no, un icono por defecto
             if (profileImage != null) {
                 Image(
                     bitmap = profileImage.asImageBitmap(),
@@ -141,9 +137,7 @@ fun HomeScreenContent(
                 fontWeight = FontWeight.Bold
             )
         }
-        // --- FIN CABECERA DE PERFIL ---
 
-        // Barra de búsqueda
         TextField(
             value = searchQuery,
             onValueChange = {

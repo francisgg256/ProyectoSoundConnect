@@ -25,16 +25,13 @@ fun MapScreen(viewmodel: HomeViewmodel) {
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
-        // Al hacer clic, añadimos el artista actual a esa posición
         onMapClick = { latLng ->
             val artistName = currentPlayer?.artist?.name ?: "Música desconocida"
             viewmodel.addMusicTag(artistName, latLng)
         }
     ) {
-        // Dibujamos todos los marcadores bajados de Firebase
         tags.forEach { tag ->
             Marker(
-                // Convertimos el lat y lng de Firebase a LatLng de Google Maps
                 state = MarkerState(position = LatLng(tag.lat, tag.lng)),
                 title = tag.artistName,
                 snippet = "Guardado por ${tag.userName}"

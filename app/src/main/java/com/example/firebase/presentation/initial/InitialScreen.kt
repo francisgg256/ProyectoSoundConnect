@@ -60,8 +60,7 @@ fun InitialScreen(
         Spacer(modifier = Modifier.weight(1f))
         
         Text("Millones de canciones.", color = Color.White, fontSize = 38.sp, fontWeight = FontWeight.Bold)
-        
-        // CORRECCIÓN DE MARCA: Usamos SoundConnect en lugar de Spotify
+
         Text("Gratis en SoundConnect", color = Color.White, fontSize = 38.sp, fontWeight = FontWeight.Bold)
         
         Spacer(modifier = Modifier.weight(1f))

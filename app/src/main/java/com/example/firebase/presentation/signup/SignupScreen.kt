@@ -86,11 +86,11 @@ fun SignupScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateB
                 email = email,
                 password = password,
                 onSuccess = {
-                    Log.i("Ignacio", "Registro OK")
+                    Log.i("Francisco", "Registro OK")
                     navigateToHome()
                 },
                 onError = {
-                    Log.i("Ignacio", "Registro KO")
+                    Log.i("Francisco", "Registro KO")
                 }
             )
         }) {
