@@ -1,7 +1,11 @@
 package com.example.firebase.presentation.homescreen
 
+import android.graphics.Bitmap
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,12 +15,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -49,11 +56,24 @@ fun HomeScreen(viewmodel: HomeViewmodel) {
     val artists by viewmodel.artist.collectAsState()
     val player by viewmodel.player.collectAsState()
     val favorites by viewmodel.favorites.collectAsState()
+    val profileImage by viewmodel.profileImage.collectAsState()
+
+    // 1. Creamos el lanzador de la cámara
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()
+    ) { bitmap: Bitmap? ->
+        // Si el usuario sacó la foto y no canceló, la guardamos
+        if (bitmap != null) {
+            viewmodel.updateProfileImage(bitmap)
+        }
+    }
 
     HomeScreenContent(
         artists = artists,
         favorites = favorites,
         player = player,
+        profileImage = profileImage, // Pasamos la foto a la interfaz
+        onCameraClick = { cameraLauncher.launch(null) }, // Al hacer clic, abrimos cámara
         onArtistClick = { viewmodel.addPlayer(it) },
         onPlayClick = { viewmodel.onPlaySelected() },
         onCancelClick = { viewmodel.onCancelSelected() },
@@ -67,6 +87,8 @@ fun HomeScreenContent(
     artists: List<Artist>,
     favorites: List<ArtistEntity>,
     player: Player?,
+    profileImage: Bitmap?,
+    onCameraClick: () -> Unit,
     onArtistClick: (Artist) -> Unit,
     onPlayClick: () -> Unit,
     onCancelClick: () -> Unit,
@@ -80,6 +102,47 @@ fun HomeScreenContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        // --- NUEVA CABECERA DE PERFIL ---
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Si hay foto, la mostramos; si no, un icono por defecto
+            if (profileImage != null) {
+                Image(
+                    bitmap = profileImage.asImageBitmap(),
+                    contentDescription = "Foto de perfil",
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(CircleShape)
+                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                        .clickable { onCameraClick() }
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Añadir foto",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(CircleShape)
+                        .background(Color.Gray.copy(alpha = 0.3f))
+                        .clickable { onCameraClick() }
+                        .padding(12.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = "¡Hola, amante de la música!",
+                color = MaterialTheme.colorScheme.onBackground,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        // --- FIN CABECERA DE PERFIL ---
+
         // Barra de búsqueda
         TextField(
             value = searchQuery,
