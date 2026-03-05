@@ -10,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Icon
@@ -72,23 +73,29 @@ class MainActivity : ComponentActivity() {
                 // El Scaffold organiza la estructura de la pantalla
                 Scaffold(
                     bottomBar = {
-                        // Solo mostramos la barra si estamos en Home o Map
+                        // Solo mostramos la barra si estamos en Home, Map o Chat
                         val navBackStackEntry by navHostController.currentBackStackEntryAsState()
                         val currentRoute = navBackStackEntry?.destination?.route
 
-                        if (currentRoute == Screens.Home.route || currentRoute == Screens.Map.route) {
+                        if (currentRoute == Screens.Home.route || currentRoute == Screens.Map.route || currentRoute == Screens.Chat.route) {
                             NavigationBar {
                                 NavigationBarItem(
                                     icon = { Icon(Icons.Default.List, contentDescription = "Música") },
                                     label = { Text("Música") },
                                     selected = currentRoute == Screens.Home.route,
-                                    onClick = { navHostController.navigate(Screens.Home.route) }
+                                    onClick = { navHostController.navigate(Screens.Home.route) { launchSingleTop = true } }
                                 )
                                 NavigationBarItem(
                                     icon = { Icon(Icons.Default.LocationOn, contentDescription = "Mapa") },
                                     label = { Text("Mapa") },
                                     selected = currentRoute == Screens.Map.route,
-                                    onClick = { navHostController.navigate(Screens.Map.route) }
+                                    onClick = { navHostController.navigate(Screens.Map.route) { launchSingleTop = true } }
+                                )
+                                NavigationBarItem(
+                                    icon = { Icon(Icons.Default.Email, contentDescription = "Chat") },
+                                    label = { Text("Chat") },
+                                    selected = currentRoute == Screens.Chat.route,
+                                    onClick = { navHostController.navigate(Screens.Chat.route) { launchSingleTop = true } }
                                 )
                             }
                         }

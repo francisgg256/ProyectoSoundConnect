@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.firebase.data.local.ArtistEntity
 import com.example.firebase.data.model.Artist
+import com.example.firebase.data.model.ChatMessage
 import com.example.firebase.data.model.MusicTag
 import com.example.firebase.data.model.Player
 import com.example.firebase.data.repository.MusicRepository
@@ -46,6 +47,10 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
     private val _profileImage = MutableStateFlow<android.graphics.Bitmap?>(null)
     val profileImage: StateFlow<android.graphics.Bitmap?> = _profileImage
 
+    // --- CHAT GLOBAL ---
+    private val _chatMessages = MutableStateFlow<List<ChatMessage>>(emptyList())
+    val chatMessages: StateFlow<List<ChatMessage>> = _chatMessages
+
     fun updateProfileImage(bitmap: android.graphics.Bitmap) {
         _profileImage.value = bitmap
     }
@@ -55,6 +60,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
         getPlayer()
         getFavorites()
         getMusicTags()
+        getChatMessages()
     }
 
     fun searchArtists(query: String) {
@@ -219,6 +225,44 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
 
             override fun onCancelled(error: DatabaseError) {
                 Log.e("SoundConnect", "Error al leer chinchetas: ${error.message}")
+            }
+        })
+    }
+
+    fun sendMessage(text: String) {
+        if (text.isBlank()) return // No enviamos mensajes vacíos
+        
+        val ref = database.reference.child("chat_messages").push()
+        val newMessage = ChatMessage(
+            id = ref.key ?: "",
+            userName = "Amante de la música", // Aquí podríamos poner el nombre del usuario logueado
+            text = text,
+            timestamp = System.currentTimeMillis()
+        )
+        
+        ref.setValue(newMessage)
+            .addOnSuccessListener { Log.i("SoundConnect", "Mensaje enviado al chat") }
+            .addOnFailureListener { Log.e("SoundConnect", "Error al enviar mensaje: ${it.message}") }
+    }
+
+    private fun getChatMessages() {
+        val ref = database.reference.child("chat_messages")
+        
+        ref.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val messagesList = mutableListOf<ChatMessage>()
+                for (child in snapshot.children) {
+                    val message = child.getValue(ChatMessage::class.java)
+                    if (message != null) {
+                        messagesList.add(message)
+                    }
+                }
+                // Ordenamos para que los más nuevos salgan abajo
+                _chatMessages.value = messagesList.sortedBy { it.timestamp }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("SoundConnect", "Error al leer el chat: ${error.message}")
             }
         })
     }

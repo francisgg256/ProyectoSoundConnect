@@ -11,6 +11,7 @@ import com.example.firebase.presentation.initial.InitialScreen
 import com.example.firebase.presentation.login.LoginScreen
 import com.example.firebase.presentation.signup.SignupScreen
 import com.example.firebase.presentation.mapscreen.MapScreen
+import com.example.firebase.presentation.chatscreen.ChatScreen
 
 // Definición de las rutas
 sealed class Screens(val route: String) {
@@ -19,6 +20,7 @@ sealed class Screens(val route: String) {
     object Signup : Screens("signup")
     object Home : Screens("home")
     object Map : Screens("map")
+    object Chat : Screens("chat")
 }
 
 @Composable
@@ -61,6 +63,9 @@ fun NavigationWrapper(
         }
         composable(Screens.Map.route) {
             MapScreen(viewmodel = homeViewModel)
+        }
+        composable(Screens.Chat.route) {
+            ChatScreen(viewmodel = homeViewModel)
         }
     }
 }
