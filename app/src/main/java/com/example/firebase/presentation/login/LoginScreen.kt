@@ -1,5 +1,6 @@
 package com.example.firebase.presentation.login
 
+// --- IMPORTACIONES NECESARIAS ---
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,40 +36,46 @@ import com.example.firebase.ui.theme.Black
 import com.example.firebase.ui.theme.SelectedField
 import com.example.firebase.ui.theme.UnselectedField
 
+// Función "Inteligente": Se comunica con el ViewModel
 @Composable
 fun LoginScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateBack: () -> Unit) {
     LoginContent(
+        // Le pasamos la lógica al botón de login
         onLoginClick = { email, password ->
             viewModel.login(
                 email = email,
                 password = password,
                 onSuccess = {
-                    navigateToHome()
+                    navigateToHome() // Si Firebase dice que los datos son correctos, vamos al Home
                     Log.i("Ignacio", "LOGIN OK")
                 },
                 onError = {
-                    Log.i("Ignacio", "LOGIN KO")
+                    Log.i("Ignacio", "LOGIN KO") // Si falla (mala contraseña), da error en consola
                 }
             )
         },
-        navigateBack = navigateBack
+        navigateBack = navigateBack // Acción para la flecha de volver atrás
     )
 }
 
+// Función "Tonta": Solo dibuja la interfaz, no sabe nada de Firebase
 @Composable
 fun LoginContent(
     onLoginClick: (String, String) -> Unit,
     navigateBack: () -> Unit
 ) {
+    // Variables de estado: Recuerdan lo que el usuario escribe en las cajas de texto
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Black)
+            .background(Black) // Fondo negro
             .padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Cabecera con la flecha para volver atrás
         Row(){
             Icon(
                 painter = painterResource(id = R.drawable.ic_back_24),
@@ -77,38 +84,47 @@ fun LoginContent(
                 modifier = Modifier
                     .padding(vertical = 24.dp)
                     .size(24.dp)
-                    .clickable { navigateBack() }
+                    .clickable { navigateBack() } // Al tocarla, vuelve atrás
             )
             Spacer(modifier = Modifier.weight(1f))
         }
-        Text("Email", color = White, fontWeight = FontWeight.Bold, fontSize =
-            40.sp)
+
+        // Campo de Email
+        Text("Email", color = White, fontWeight = FontWeight.Bold, fontSize = 40.sp)
         TextField(
-            value = email,
-            onValueChange = { email = it },
+            value = email, // Muestra lo que hay guardado en la variable email
+            onValueChange = { email = it }, // Actualiza la variable con cada nueva letra
             modifier = Modifier.fillMaxWidth(),
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = UnselectedField,
                 focusedContainerColor = SelectedField
             )
         )
+
         Spacer(Modifier.height(48.dp))
+
+        // Campo de Contraseña
         Text("Password", color = White, fontWeight = FontWeight.Bold, fontSize = 40.sp)
         TextField(
-            value = password, onValueChange = { password = it },
+            value = password,
+            onValueChange = { password = it },
             modifier = Modifier.fillMaxWidth(),
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = UnselectedField,
                 focusedContainerColor = SelectedField
             )
         )
+
         Spacer(Modifier.height(48.dp))
+
+        // Botón de iniciar sesión
         Button(onClick = { onLoginClick(email, password) }) {
             Text(text = "Login")
         }
     }
 }
 
+// Vista previa
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {

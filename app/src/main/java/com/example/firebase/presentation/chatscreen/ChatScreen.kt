@@ -22,14 +22,16 @@ import java.util.*
 
 @Composable
 fun ChatScreen(viewmodel: HomeViewmodel) {
+    // Obtenemos todos los mensajes de Firebase
     val messages by viewmodel.chatMessages.collectAsState()
-    var textToSend by remember { mutableStateOf("") }
+    var textToSend by remember { mutableStateOf("") } // El texto que escribimos
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        // Título superior
         Text(
             text = "Chat Global",
             color = MaterialTheme.colorScheme.onBackground,
@@ -38,6 +40,7 @@ fun ChatScreen(viewmodel: HomeViewmodel) {
             modifier = Modifier.padding(16.dp)
         )
 
+        // Lista de burbujas de chat
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
@@ -54,6 +57,7 @@ fun ChatScreen(viewmodel: HomeViewmodel) {
             }
         }
 
+        // Zona para escribir y enviar (Barra inferior)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -71,13 +75,14 @@ fun ChatScreen(viewmodel: HomeViewmodel) {
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White
                 ),
-                shape = RoundedCornerShape(24.dp)
+                shape = RoundedCornerShape(24.dp) // Redondea la caja de texto
             )
             Spacer(modifier = Modifier.width(8.dp))
+            // Botón redondo con el icono de enviar
             IconButton(
                 onClick = {
-                    viewmodel.sendMessage(textToSend)
-                    textToSend = ""
+                    viewmodel.sendMessage(textToSend) // Llama al ViewModel para enviar
+                    textToSend = "" // Vacía la barra de texto
                 },
                 modifier = Modifier
                     .size(48.dp)
@@ -90,8 +95,10 @@ fun ChatScreen(viewmodel: HomeViewmodel) {
     }
 }
 
+// Dibuja el estilo tipo "WhatsApp" para cada mensaje
 @Composable
 fun MessageBubble(sender: String, text: String, timestamp: Long) {
+    // Convierte los milisegundos gigantes en horas y minutos (Ej: 14:30)
     val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
     val timeString = sdf.format(Date(timestamp))
 
@@ -100,25 +107,28 @@ fun MessageBubble(sender: String, text: String, timestamp: Long) {
             .fillMaxWidth()
             .padding(vertical = 4.dp)
     ) {
+        // Nombre del que envía el mensaje
         Text(
             text = sender,
             color = MaterialTheme.colorScheme.primary,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold
         )
+        // La caja o globo del mensaje
         Box(
             modifier = Modifier
+                // clip recorta 3 esquinas y deja 1 recta para que parezca un bocadillo
                 .clip(RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp, bottomStart = 16.dp))
                 .background(Color.Gray.copy(alpha = 0.2f))
                 .padding(12.dp)
         ) {
             Column {
-                Text(text = text, color = MaterialTheme.colorScheme.onBackground, fontSize = 16.sp)
+                Text(text = text, color = MaterialTheme.colorScheme.onBackground, fontSize = 16.sp) // El mensaje
                 Text(
-                    text = timeString,
+                    text = timeString, // La hora
                     color = Color.Gray,
                     fontSize = 10.sp,
-                    modifier = Modifier.align(Alignment.End)
+                    modifier = Modifier.align(Alignment.End) // Alinea la hora a la derecha
                 )
             }
         }

@@ -28,43 +28,49 @@ import kotlinx.coroutines.launch
 
 class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() {
 
+    // 1. CONEXIONES: Base de datos en Europa y Reproductor de Audio
     private var database: FirebaseDatabase = Firebase.database("https://soundconnect-3c760-default-rtdb.europe-west1.firebasedatabase.app")
     private var mediaPlayer: MediaPlayer? = null
 
+    // 2. ESTADOS: Variables que la pantalla "escucha" para redibujarse
     private val _artist = MutableStateFlow<List<Artist>>(emptyList())
     val artist: StateFlow<List<Artist>> = _artist
 
     private val _player = MutableStateFlow<Player?>(null)
-    val player: StateFlow<Player?> = _player
+    val player: StateFlow<Player?> = _player // Controla la barra morada inferior
 
     private val _favorites = MutableStateFlow<List<ArtistEntity>>(emptyList())
-    val favorites: StateFlow<List<ArtistEntity>> = _favorites
+    val favorites: StateFlow<List<ArtistEntity>> = _favorites // Lista de corazones rojos
 
     private val _musicTags = MutableStateFlow<List<MusicTag>>(emptyList())
-    val musicTags: StateFlow<List<MusicTag>> = _musicTags
+    val musicTags: StateFlow<List<MusicTag>> = _musicTags // Chinchetas del mapa
 
     private val _profileImage = MutableStateFlow<android.graphics.Bitmap?>(null)
-    val profileImage: StateFlow<android.graphics.Bitmap?> = _profileImage
+    val profileImage: StateFlow<android.graphics.Bitmap?> = _profileImage // Foto del usuario
 
     private val _chatMessages = MutableStateFlow<List<ChatMessage>>(emptyList())
-    val chatMessages: StateFlow<List<ChatMessage>> = _chatMessages
+    val chatMessages: StateFlow<List<ChatMessage>> = _chatMessages // Mensajes del chat
 
+    // Función para guardar la foto que devuelve la cámara
     fun updateProfileImage(bitmap: android.graphics.Bitmap) {
         _profileImage.value = bitmap
     }
 
+    // El bloque init se ejecuta automáticamente al abrir la app
     init {
-        searchArtists("rock")
-        getPlayer()
-        getFavorites()
-        getMusicTags()
-        getChatMessages()
+        searchArtists("rock") // Búsqueda por defecto
+        getPlayer()           // Escucha si hay música sonando en la nube
+        getFavorites()        // Carga los favoritos de la memoria del móvil
+        getMusicTags()        // Carga las chinchetas de Firebase
+        getChatMessages()     // Carga el chat de Firebase
     }
 
+    // --- MÚSICA Y FAVORITOS ---
     fun searchArtists(query: String) {
         if (query.isBlank()) return
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                // Pide datos a Deezer a través del Repositorio
                 val results = musicRepository.searchArtists(query)
                 _artist.value = results
             } catch (e: Exception) {
@@ -83,14 +89,15 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
 
     fun onFavoriteClick(artist: Artist) {
         viewModelScope.launch(Dispatchers.IO) {
-            musicRepository.toggleFavorite(artist)
+            musicRepository.toggleFavorite(artist) // Añade o quita el favorito
         }
     }
 
+    // --- REPRODUCTOR SINCRONIZADO EN FIREBASE ---
     private fun collectPlayer(): Flow<DataSnapshot> = callbackFlow {
         val listener = object: ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                trySend(snapshot).isSuccess
+                trySend(snapshot).isSuccess // Avisa si hay cambios en Firebase
             }
             override fun onCancelled(error: DatabaseError) {
                 Log.e("SoundConnect","Firebase Error: ${error.message}")
@@ -111,7 +118,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
                 .collect { snapshot ->
                     try {
                         val player = snapshot.getValue(Player::class.java)
-                        _player.value = player
+                        _player.value = player // Muestra la barra morada si hay datos
                     } catch (e: Exception) {
                         Log.e("SoundConnect", "Fallo al leer Firebase: ${e.message}")
                     }
@@ -121,11 +128,14 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
 
     fun onPlaySelected() {
         if (player.value != null) {
-            val willPlay = !(player.value?.play ?: false)
+            val willPlay = !(player.value?.play ?: false) // Alterna entre Play y Pause
             val currentPlayer = _player.value?.copy(play = willPlay)
+
+            // Avisa a la nube del cambio
             val ref = database.reference.child("player")
             ref.setValue(currentPlayer)
 
+            // Descarga el audio mp3 y lo reproduce si le dimos a Play
             if (willPlay) {
                 val artistName = currentPlayer?.artist?.name ?: return
                 viewModelScope.launch(Dispatchers.IO) {
@@ -147,13 +157,14 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
 
     fun onCancelSelected() {
         val ref = database.reference.child("player")
-        ref.setValue(null)
+        ref.setValue(null) // Borra la carpeta player de Firebase
 
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
     }
 
+    // Se llama al agitar el móvil (Acelerómetro)
     fun recommendRandomArtist() {
         val randomArtists = listOf(
             "Michael Jackson", "Queen", "Dua Lipa", "Eminem",
@@ -164,6 +175,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
         searchArtists(surpriseArtist)
     }
 
+    // Se ejecuta al hacer clic en un artista de la lista
     fun addPlayer(artist: Artist) {
         val ref = database.reference.child("player")
         val player = Player(artist, play = true)
@@ -191,6 +203,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
         }
     }
 
+    // --- MAPAS ---
     fun addMusicTag(artistName: String, latLng: LatLng) {
         val ref = database.reference.child("music_tags").push()
 
@@ -200,7 +213,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
             lat = latLng.latitude,
             lng = latLng.longitude
         )
-        ref.setValue(newTag)
+        ref.setValue(newTag) // Sube la chincheta a Firebase
     }
 
     private fun getMusicTags() {
@@ -212,7 +225,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
                     val tag = child.getValue(MusicTag::class.java)
                     if (tag != null) tagsList.add(tag)
                 }
-                _musicTags.value = tagsList
+                _musicTags.value = tagsList // Dibuja las chinchetas
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -221,9 +234,10 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
         })
     }
 
+    // --- CHAT GLOBAL ---
     fun sendMessage(text: String) {
         if (text.isBlank()) return
-        
+
         val ref = database.reference.child("chat_messages").push()
         val newMessage = ChatMessage(
             id = ref.key ?: "",
@@ -231,15 +245,15 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
             text = text,
             timestamp = System.currentTimeMillis()
         )
-        
-        ref.setValue(newMessage)
+
+        ref.setValue(newMessage) // Sube el mensaje a la nube
             .addOnSuccessListener { Log.i("SoundConnect", "Mensaje enviado al chat") }
             .addOnFailureListener { Log.e("SoundConnect", "Error al enviar mensaje: ${it.message}") }
     }
 
     private fun getChatMessages() {
         val ref = database.reference.child("chat_messages")
-        
+
         ref.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val messagesList = mutableListOf<ChatMessage>()
@@ -249,7 +263,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
                         messagesList.add(message)
                     }
                 }
-                _chatMessages.value = messagesList.sortedBy { it.timestamp }
+                _chatMessages.value = messagesList.sortedBy { it.timestamp } // Ordena por fecha
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -260,7 +274,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
 
     override fun onCleared() {
         super.onCleared()
-        mediaPlayer?.release()
+        mediaPlayer?.release() // Limpia la memoria al cerrar la app
         mediaPlayer = null
     }
 }

@@ -1,5 +1,6 @@
 package com.example.firebase.presentation.signup
 
+// --- IMPORTACIONES NECESARIAS ---
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,6 +37,7 @@ import com.example.firebase.ui.theme.UnselectedField
 
 @Composable
 fun SignupScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateBack: () -> Unit) {
+    // Variables para guardar el email y contraseña que el usuario quiere crear
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -47,6 +49,7 @@ fun SignupScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateB
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
+        // Flecha hacia atrás
         Row(){
             Icon(
                 painter = painterResource(id = R.drawable.ic_back_24),
@@ -55,11 +58,12 @@ fun SignupScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateB
                 modifier = Modifier
                     .padding(vertical = 24.dp)
                     .size(24.dp)
-                    .clickable { navigateBack() }
+                    .clickable { navigateBack() } // Vuelve a la pantalla de bienvenida
             )
             Spacer(modifier = Modifier.weight(1f))
         }
 
+        // Campo para escribir el email
         Text("Email", color = White, fontWeight = FontWeight.Bold, fontSize = 40.sp)
         TextField(
             value = email,
@@ -70,31 +74,39 @@ fun SignupScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateB
                 focusedContainerColor = SelectedField
             )
         )
+
         Spacer(Modifier.height(48.dp))
+
+        // Campo para escribir la contraseña
         Text("Password", color = White, fontWeight = FontWeight.Bold, fontSize = 40.sp)
         TextField(
-            value = password, onValueChange = { password = it },
+            value = password,
+            onValueChange = { password = it },
             modifier = Modifier.fillMaxWidth(),
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = UnselectedField,
                 focusedContainerColor = SelectedField
             )
         )
+
         Spacer(Modifier.height(48.dp))
+
+        // Botón principal de Registro
         Button(onClick = {
+            // Llama a la función signUp del AuthViewModel en lugar de login
             viewModel.signUp(
                 email = email,
                 password = password,
                 onSuccess = {
-                    Log.i("Francisco", "Registro OK")
-                    navigateToHome()
+                    Log.i("Francisco", "Registro OK") // Informa por consola
+                    navigateToHome() // Si Firebase lo crea bien, lleva al usuario al mapa/música
                 },
                 onError = {
                     Log.i("Francisco", "Registro KO")
                 }
             )
         }) {
-            Text(text = "Sign Up")
+            Text(text = "Sign Up") // Sign Up = Registrarse
         }
     }
 }
