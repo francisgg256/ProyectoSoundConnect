@@ -2,11 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- RA 1: Gestión de permisos obligatorios -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
@@ -24,10 +22,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Firebase">
 
-        <!-- RA 3: Configuración de Google Maps -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDwzQ8dI6EinUWxGFOyQCmDH6_FdsJfaNg" />
+            android:value="AIzaSyDA7CXH9D6jZnhYCCCwkbDM94oCJ1Hgzzs" />
 
         <activity
             android:name=".MainActivity"

@@ -8,10 +8,21 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.firebase.data.local.AppDatabase
 import com.example.firebase.data.network.RetrofitClient
@@ -58,11 +69,40 @@ class MainActivity : ComponentActivity() {
             navHostController = rememberNavController()
 
             FirebaseTheme(darkTheme = themeViewModel.isDarkTheme.value) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    NavigationWrapper(navHostController, authViewModel, homeViewModel)
+                // El Scaffold organiza la estructura de la pantalla
+                Scaffold(
+                    bottomBar = {
+                        // Solo mostramos la barra si estamos en Home o Map
+                        val navBackStackEntry by navHostController.currentBackStackEntryAsState()
+                        val currentRoute = navBackStackEntry?.destination?.route
+
+                        if (currentRoute == Screens.Home.route || currentRoute == Screens.Map.route) {
+                            NavigationBar {
+                                NavigationBarItem(
+                                    icon = { Icon(Icons.Default.List, contentDescription = "Música") },
+                                    label = { Text("Música") },
+                                    selected = currentRoute == Screens.Home.route,
+                                    onClick = { navHostController.navigate(Screens.Home.route) }
+                                )
+                                NavigationBarItem(
+                                    icon = { Icon(Icons.Default.LocationOn, contentDescription = "Mapa") },
+                                    label = { Text("Mapa") },
+                                    selected = currentRoute == Screens.Map.route,
+                                    onClick = { navHostController.navigate(Screens.Map.route) }
+                                )
+                            }
+                        }
+                    }
+                ) { paddingValues ->
+                    // El paddingValues evita que el contenido quede debajo de la barra
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        NavigationWrapper(navHostController, authViewModel, homeViewModel)
+                    }
                 }
             }
         }

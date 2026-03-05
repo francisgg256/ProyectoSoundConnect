@@ -6,8 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.firebase.data.local.ArtistEntity
 import com.example.firebase.data.model.Artist
+import com.example.firebase.data.model.MusicTag
 import com.example.firebase.data.model.Player
 import com.example.firebase.data.repository.MusicRepository
+import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -35,6 +37,9 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
 
     private val _favorites = MutableStateFlow<List<ArtistEntity>>(emptyList())
     val favorites: StateFlow<List<ArtistEntity>> = _favorites
+
+    private val _musicTags = MutableStateFlow<List<MusicTag>>(emptyList())
+    val musicTags: StateFlow<List<MusicTag>> = _musicTags
 
     init {
         searchArtists("rock")
@@ -155,6 +160,13 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
                 }
             }
         }
+    }
+
+    fun addMusicTag(artist: Artist, location: LatLng) {
+        val newTag = MusicTag(artist.name ?: "Desconocido", location)
+        _musicTags.value = _musicTags.value + newTag
+        // Nota: De momento solo se guardan mientras la app esté abierta.
+        // Luego las subiremos a Firebase para que sean permanentes.
     }
 
     override fun onCleared() {
