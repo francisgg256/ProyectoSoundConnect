@@ -1,9 +1,9 @@
 package com.example.firebase.data.model
 
-import com.google.android.gms.maps.model.LatLng
-
 data class MusicTag(
-    val artistName: String,
-    val position: LatLng, // Coordenadas GPS (Latitud y Longitud)
-    val userName: String = "Anonimo"
+    val id: String = "",
+    val artistName: String = "",
+    val lat: Double = 0.0,
+    val lng: Double = 0.0,
+    val userName: String = "Anónimo"
 )

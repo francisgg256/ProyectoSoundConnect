@@ -45,6 +45,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
         searchArtists("rock")
         getPlayer()
         getFavorites()
+        getMusicTags()
     }
 
     fun searchArtists(query: String) {
@@ -162,11 +163,38 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
         }
     }
 
-    fun addMusicTag(artist: Artist, location: LatLng) {
-        val newTag = MusicTag(artist.name ?: "Desconocido", location)
-        _musicTags.value = _musicTags.value + newTag
-        // Nota: De momento solo se guardan mientras la app esté abierta.
-        // Luego las subiremos a Firebase para que sean permanentes.
+    // --- MAPAS Y ETIQUETAS (Firebase) ---
+    fun addMusicTag(artistName: String, latLng: LatLng) {
+        // Creamos una nueva referencia en la carpeta "music_tags"
+        val ref = database.reference.child("music_tags").push()
+
+        val newTag = MusicTag(
+            id = ref.key ?: "",
+            artistName = artistName,
+            lat = latLng.latitude,
+            lng = latLng.longitude
+        )
+        // Guardamos en Firebase (esto actualiza a todos los usuarios)
+        ref.setValue(newTag)
+    }
+
+    private fun getMusicTags() {
+        val ref = database.reference.child("music_tags")
+        // Escuchamos los cambios en tiempo real
+        ref.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val tagsList = mutableListOf<MusicTag>()
+                for (child in snapshot.children) {
+                    val tag = child.getValue(MusicTag::class.java)
+                    if (tag != null) tagsList.add(tag)
+                }
+                _musicTags.value = tagsList // Actualizamos el mapa
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("SoundConnect", "Error al leer chinchetas: ${error.message}")
+            }
+        })
     }
 
     override fun onCleared() {

@@ -16,23 +16,28 @@ import com.google.maps.android.compose.rememberCameraPositionState
 @Composable
 fun MapScreen(viewmodel: HomeViewmodel) {
     val tags by viewmodel.musicTags.collectAsState()
+    val currentPlayer by viewmodel.player.collectAsState()
     
-    // Posición inicial (por ejemplo, el centro de Madrid o tu ciudad)
-    val madrid = LatLng(40.4167, -3.7037)
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(madrid, 12f)
+        position = CameraPosition.fromLatLngZoom(LatLng(40.4167, -3.7037), 10f)
     }
 
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState
+        cameraPositionState = cameraPositionState,
+        // Al hacer clic, añadimos el artista actual a esa posición
+        onMapClick = { latLng ->
+            val artistName = currentPlayer?.artist?.name ?: "Música desconocida"
+            viewmodel.addMusicTag(artistName, latLng)
+        }
     ) {
-        // Dibujamos todas las chinchetas que haya en el ViewModel
+        // Dibujamos todos los marcadores bajados de Firebase
         tags.forEach { tag ->
             Marker(
-                state = MarkerState(position = tag.position),
+                // Convertimos el lat y lng de Firebase a LatLng de Google Maps
+                state = MarkerState(position = LatLng(tag.lat, tag.lng)),
                 title = tag.artistName,
-                snippet = "Escuchado aquí"
+                snippet = "Guardado por ${tag.userName}"
             )
         }
     }
