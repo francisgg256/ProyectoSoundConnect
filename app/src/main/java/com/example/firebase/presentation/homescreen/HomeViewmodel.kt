@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() {
@@ -80,7 +81,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
                 trySend(snapshot).isSuccess
             }
             override fun onCancelled(error: DatabaseError) {
-                Log.i("SoundConnect","Error: ${error.message}")
+                Log.e("SoundConnect","Firebase Error: ${error.message}")
                 close(error.toException())
             }
         }
@@ -91,10 +92,14 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
 
     private fun getPlayer() {
         viewModelScope.launch {
-            collectPlayer().collect {
-                val player = it.getValue(Player::class.java)
-                _player.value = player
-            }
+            collectPlayer()
+                .catch { e ->
+                    Log.e("SoundConnect", "Error collecting player: ${e.message}")
+                }
+                .collect {
+                    val player = it.getValue(Player::class.java)
+                    _player.value = player
+                }
         }
     }
 
