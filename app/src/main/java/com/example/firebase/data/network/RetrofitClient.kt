@@ -4,7 +4,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    private const val BASE_URL = "https://ws.audioscrobbler.com/"
+    private const val BASE_URL = "https://api.deezer.com/"
 
     val apiService: MusicApiService by lazy {
         Retrofit.Builder()

@@ -109,7 +109,7 @@ fun HomeScreenContent(
 
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(artists) { artist ->
-                val isFavorite = favorites.any { it.name == artist.name }
+                val isFavorite = favorites.any { it.name.equals(artist.name, ignoreCase = true) }
 
                 Row(
                     modifier = Modifier

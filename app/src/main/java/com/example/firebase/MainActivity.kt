@@ -1,6 +1,7 @@
 package com.example.firebase
 
 import android.content.Context
+import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -19,6 +20,7 @@ import com.example.firebase.data.repository.MusicRepository
 import com.example.firebase.presentation.ThemeViewModel
 import com.example.firebase.presentation.auth.AuthViewModel
 import com.example.firebase.presentation.homescreen.HomeViewmodel
+import com.example.firebase.presentation.sensors.ShakeDetector
 import com.example.firebase.ui.theme.FirebaseTheme
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -26,8 +28,10 @@ import com.google.firebase.ktx.Firebase
 class MainActivity : ComponentActivity() {
 
     private lateinit var navHostController: NavHostController
+
     private val authRepository by lazy { AuthRepository(Firebase.auth) }
     private val authViewModel by lazy { AuthViewModel(authRepository) }
+
     private val appDatabase by lazy { AppDatabase.getDatabase(applicationContext) }
     private val musicRepository by lazy {
         MusicRepository(RetrofitClient.apiService, appDatabase.artistDao())
@@ -36,9 +40,19 @@ class MainActivity : ComponentActivity() {
 
     private val themeViewModel = ThemeViewModel()
 
+    private lateinit var shakeDetector: ShakeDetector
+    private var accelerometer: Sensor? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        shakeDetector = ShakeDetector {
+            homeViewModel.recommendRandomArtist()
+        }
+
+        val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
         setContent {
             navHostController = rememberNavController()
@@ -57,12 +71,19 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
         themeViewModel.startListening(sensorManager)
+
+        accelerometer?.let {
+            sensorManager.registerListener(shakeDetector, it, SensorManager.SENSOR_DELAY_UI)
+        }
     }
 
     override fun onPause() {
         super.onPause()
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
         themeViewModel.stopListening(sensorManager)
+        sensorManager.unregisterListener(shakeDetector)
     }
 }

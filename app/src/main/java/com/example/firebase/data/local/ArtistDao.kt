@@ -18,6 +18,6 @@ interface ArtistDao {
     @Delete
     suspend fun deleteFavorite(artist: ArtistEntity)
 
-    @Query("SELECT EXISTS(SELECT * FROM favorite_artists WHERE name = :artistName)")
-    suspend fun isFavorite(artistName: String): Boolean
+    @Query("SELECT * FROM favorite_artists WHERE name = :artistName LIMIT 1")
+    suspend fun getFavoriteByName(artistName: String): ArtistEntity?
 }

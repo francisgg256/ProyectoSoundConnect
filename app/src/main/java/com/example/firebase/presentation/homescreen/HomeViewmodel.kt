@@ -1,5 +1,6 @@
 package com.example.firebase.presentation.homescreen
 
+import android.media.MediaPlayer
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,6 +14,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,8 +25,11 @@ import kotlinx.coroutines.launch
 class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() {
 
     private var database: FirebaseDatabase = Firebase.database
+    private var mediaPlayer: MediaPlayer? = null
+
     private val _artist = MutableStateFlow<List<Artist>>(emptyList())
     val artist: StateFlow<List<Artist>> = _artist
+
     private val _player = MutableStateFlow<Player?>(null)
     val player: StateFlow<Player?> = _player
 
@@ -39,7 +44,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
 
     fun searchArtists(query: String) {
         if (query.isBlank()) return
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val results = musicRepository.searchArtists(query)
                 _artist.value = results
@@ -50,7 +55,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
     }
 
     private fun getFavorites() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             musicRepository.getAllFavorites().collect { favList ->
                 _favorites.value = favList
             }
@@ -58,7 +63,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
     }
 
     fun onFavoriteClick(artist: Artist) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             musicRepository.toggleFavorite(artist)
         }
     }
@@ -78,7 +83,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
         awaitClose { ref.removeEventListener(listener) }
     }
 
-    private fun getPlayer(){
+    private fun getPlayer() {
         viewModelScope.launch {
             collectPlayer().collect {
                 val player = it.getValue(Player::class.java)
@@ -88,21 +93,59 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
     }
 
     fun onPlaySelected() {
-        if(player.value!= null){
-            val currentPlayer = _player.value?.copy(play = !player.value?.play!!)
+        if (player.value != null) {
+            val willPlay = !(player.value?.play ?: false)
+            val currentPlayer = _player.value?.copy(play = willPlay)
             val ref = database.reference.child("player")
             ref.setValue(currentPlayer)
+
+            if (willPlay) {
+                val artistName = currentPlayer?.artist?.name ?: return
+                viewModelScope.launch(Dispatchers.IO) {
+                    val audioUrl = musicRepository.getArtistPreviewUrl(artistName)
+                    if (audioUrl != null) {
+                        mediaPlayer?.release()
+                        mediaPlayer = MediaPlayer().apply {
+                            setDataSource(audioUrl)
+                            prepareAsync()
+                            setOnPreparedListener { start() }
+                        }
+                    }
+                }
+            } else {
+                mediaPlayer?.pause()
+            }
         }
     }
 
-    fun onCancelSelected(){
+    fun onCancelSelected() {
         val ref = database.reference.child("player")
         ref.setValue(null)
+
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
+        mediaPlayer = null
+    }
+
+    fun recommendRandomArtist() {
+        val randomArtists = listOf(
+            "Michael Jackson", "Queen", "Dua Lipa", "Eminem",
+            "Bad Bunny", "Rosalía", "The Beatles", "Shakira",
+            "AC/DC", "Rihanna", "Frank Sinatra"
+        )
+        val surpriseArtist = randomArtists.random()
+        searchArtists(surpriseArtist)
     }
 
     fun addPlayer(artist: Artist) {
         val ref = database.reference.child("player")
-        val player = Player(artist,play=true)
+        val player = Player(artist, play = true)
         ref.setValue(player)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        mediaPlayer?.release()
+        mediaPlayer = null
     }
 }

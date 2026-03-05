@@ -1,12 +1,11 @@
 package com.example.firebase.data.model
 
-// Modelamos solo lo que necesitamos para cumplir con la UI de SoundConnect
-data class MusicResponse(
-    val results: ArtistResults
+data class DeezerResponse(
+    val data: List<DeezerArtist>
 )
-data class ArtistResults(
-    val artistmatches: ArtistMatches
-)
-data class ArtistMatches(
-    val artist: List<Artist>
+
+data class DeezerArtist(
+    val name: String,
+    val nb_fan: Int,
+    val picture_medium: String
 )
