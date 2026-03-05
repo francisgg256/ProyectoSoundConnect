@@ -11,7 +11,6 @@ class MusicRepository(
     private val apiService: MusicApiService,
     private val artistDao: ArtistDao
 ) {
-
     suspend fun searchArtists(query: String): List<Artist> {
         return try {
             val response = apiService.searchArtists(query)
@@ -30,10 +29,9 @@ class MusicRepository(
 
     suspend fun getArtistPreviewUrl(artistName: String): String? {
         return try {
-            val query = artistName.replace(" ", "+")
-            val url = "https://itunes.apple.com/search?term=$query&entity=song&limit=1"
-            val response = apiService.getSongPreview(url)
-            response.results.firstOrNull()?.previewUrl
+            val response = apiService.searchTracks(artistName)
+
+            response.data.firstOrNull()?.preview
         } catch (e: Exception) {
             null
         }

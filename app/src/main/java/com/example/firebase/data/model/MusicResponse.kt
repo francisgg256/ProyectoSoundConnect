@@ -9,3 +9,11 @@ data class DeezerArtist(
     val nb_fan: Int,
     val picture_medium: String
 )
+
+data class DeezerTrackResponse(
+    val data: List<DeezerTrack>
+)
+
+data class DeezerTrack(
+    val preview: String
+)
