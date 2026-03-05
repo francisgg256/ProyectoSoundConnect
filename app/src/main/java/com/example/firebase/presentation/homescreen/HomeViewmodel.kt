@@ -141,6 +141,20 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
         val ref = database.reference.child("player")
         val player = Player(artist, play = true)
         ref.setValue(player)
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val artistName = artist.name ?: return@launch
+            val audioUrl = musicRepository.getArtistPreviewUrl(artistName)
+
+            if (audioUrl != null) {
+                mediaPlayer?.release()
+                mediaPlayer = MediaPlayer().apply {
+                    setDataSource(audioUrl)
+                    prepareAsync()
+                    setOnPreparedListener { start() }
+                }
+            }
+        }
     }
 
     override fun onCleared() {
