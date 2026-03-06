@@ -9,13 +9,11 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-// Leemos el archivo local.properties
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
-// Guardamos la clave en una variable
 val mapsApiKey = localProperties.getProperty("MAPS_API_KEY") ?: ""
 
 android {
@@ -29,8 +27,7 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        
-        // Inyectamos la variable para el Manifest
+
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
