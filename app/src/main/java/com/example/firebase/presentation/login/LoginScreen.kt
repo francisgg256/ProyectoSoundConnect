@@ -2,6 +2,7 @@ package com.example.firebase.presentation.login
 
 // --- IMPORTACIONES NECESARIAS ---
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -25,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color.Companion.White
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,6 +41,9 @@ import com.example.firebase.ui.theme.UnselectedField
 // Función "Inteligente": Se comunica con el ViewModel
 @Composable
 fun LoginScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateBack: () -> Unit) {
+    // Obtenemos el contexto para poder mostrar el Toast
+    val context = LocalContext.current
+
     LoginContent(
         // Le pasamos la lógica al botón de login
         onLoginClick = { email, password ->
@@ -51,6 +56,8 @@ fun LoginScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateBa
                 },
                 onError = {
                     Log.i("Ignacio", "LOGIN KO") // Si falla (mala contraseña), da error en consola
+                    // Mostramos el mensaje de error al usuario
+                    Toast.makeText(context, "Error al iniciar sesión. Revisa tus datos.", Toast.LENGTH_SHORT).show()
                 }
             )
         },

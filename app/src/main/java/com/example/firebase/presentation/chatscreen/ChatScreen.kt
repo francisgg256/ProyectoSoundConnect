@@ -4,11 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.* // Esto importa getValue y setValue necesarios
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -16,22 +17,30 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.firebase.presentation.homescreen.HomeViewmodel
 import java.text.SimpleDateFormat
 import java.util.*
 
+// AQUÍ ESTABA EL ERROR: Ahora recibe ChatViewModel, no HomeViewmodel
 @Composable
-fun ChatScreen(viewmodel: HomeViewmodel) {
+fun ChatScreen(viewmodel: ChatViewModel) {
     // Obtenemos todos los mensajes de Firebase
     val messages by viewmodel.chatMessages.collectAsState()
-    var textToSend by remember { mutableStateOf("") } // El texto que escribimos
+    var textToSend by remember { mutableStateOf("") } 
+    
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.size - 1)
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .imePadding() 
     ) {
-        // Título superior
         Text(
             text = "Chat Global",
             color = MaterialTheme.colorScheme.onBackground,
@@ -40,8 +49,8 @@ fun ChatScreen(viewmodel: HomeViewmodel) {
             modifier = Modifier.padding(16.dp)
         )
 
-        // Lista de burbujas de chat
         LazyColumn(
+            state = listState, 
             modifier = Modifier
                 .weight(1f)
                 .padding(horizontal = 16.dp),
@@ -57,7 +66,6 @@ fun ChatScreen(viewmodel: HomeViewmodel) {
             }
         }
 
-        // Zona para escribir y enviar (Barra inferior)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -75,14 +83,15 @@ fun ChatScreen(viewmodel: HomeViewmodel) {
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White
                 ),
-                shape = RoundedCornerShape(24.dp) // Redondea la caja de texto
+                shape = RoundedCornerShape(24.dp) 
             )
             Spacer(modifier = Modifier.width(8.dp))
-            // Botón redondo con el icono de enviar
             IconButton(
                 onClick = {
-                    viewmodel.sendMessage(textToSend) // Llama al ViewModel para enviar
-                    textToSend = "" // Vacía la barra de texto
+                    if (textToSend.isNotBlank()) { 
+                        viewmodel.sendMessage(textToSend)
+                        textToSend = "" 
+                    }
                 },
                 modifier = Modifier
                     .size(48.dp)
@@ -95,10 +104,8 @@ fun ChatScreen(viewmodel: HomeViewmodel) {
     }
 }
 
-// Dibuja el estilo tipo "WhatsApp" para cada mensaje
 @Composable
 fun MessageBubble(sender: String, text: String, timestamp: Long) {
-    // Convierte los milisegundos gigantes en horas y minutos (Ej: 14:30)
     val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
     val timeString = sdf.format(Date(timestamp))
 
@@ -107,28 +114,25 @@ fun MessageBubble(sender: String, text: String, timestamp: Long) {
             .fillMaxWidth()
             .padding(vertical = 4.dp)
     ) {
-        // Nombre del que envía el mensaje
         Text(
             text = sender,
             color = MaterialTheme.colorScheme.primary,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold
         )
-        // La caja o globo del mensaje
         Box(
             modifier = Modifier
-                // clip recorta 3 esquinas y deja 1 recta para que parezca un bocadillo
                 .clip(RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp, bottomStart = 16.dp))
                 .background(Color.Gray.copy(alpha = 0.2f))
                 .padding(12.dp)
         ) {
             Column {
-                Text(text = text, color = MaterialTheme.colorScheme.onBackground, fontSize = 16.sp) // El mensaje
+                Text(text = text, color = MaterialTheme.colorScheme.onBackground, fontSize = 16.sp) 
                 Text(
-                    text = timeString, // La hora
+                    text = timeString, 
                     color = Color.Gray,
                     fontSize = 10.sp,
-                    modifier = Modifier.align(Alignment.End) // Alinea la hora a la derecha
+                    modifier = Modifier.align(Alignment.End)
                 )
             }
         }

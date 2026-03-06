@@ -6,11 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.firebase.data.local.ArtistEntity
 import com.example.firebase.data.model.Artist
-import com.example.firebase.data.model.ChatMessage
-import com.example.firebase.data.model.MusicTag
 import com.example.firebase.data.model.Player
 import com.example.firebase.data.repository.MusicRepository
-import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -42,14 +39,8 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
     private val _favorites = MutableStateFlow<List<ArtistEntity>>(emptyList())
     val favorites: StateFlow<List<ArtistEntity>> = _favorites // Lista de corazones rojos
 
-    private val _musicTags = MutableStateFlow<List<MusicTag>>(emptyList())
-    val musicTags: StateFlow<List<MusicTag>> = _musicTags // Chinchetas del mapa
-
     private val _profileImage = MutableStateFlow<android.graphics.Bitmap?>(null)
     val profileImage: StateFlow<android.graphics.Bitmap?> = _profileImage // Foto del usuario
-
-    private val _chatMessages = MutableStateFlow<List<ChatMessage>>(emptyList())
-    val chatMessages: StateFlow<List<ChatMessage>> = _chatMessages // Mensajes del chat
 
     // Función para guardar la foto que devuelve la cámara
     fun updateProfileImage(bitmap: android.graphics.Bitmap) {
@@ -61,8 +52,6 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
         searchArtists("rock") // Búsqueda por defecto
         getPlayer()           // Escucha si hay música sonando en la nube
         getFavorites()        // Carga los favoritos de la memoria del móvil
-        getMusicTags()        // Carga las chinchetas de Firebase
-        getChatMessages()     // Carga el chat de Firebase
     }
 
     // --- MÚSICA Y FAVORITOS ---
@@ -201,75 +190,6 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
                 }
             }
         }
-    }
-
-    // --- MAPAS ---
-    fun addMusicTag(artistName: String, latLng: LatLng) {
-        val ref = database.reference.child("music_tags").push()
-
-        val newTag = MusicTag(
-            id = ref.key ?: "",
-            artistName = artistName,
-            lat = latLng.latitude,
-            lng = latLng.longitude
-        )
-        ref.setValue(newTag) // Sube la chincheta a Firebase
-    }
-
-    private fun getMusicTags() {
-        val ref = database.reference.child("music_tags")
-        ref.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val tagsList = mutableListOf<MusicTag>()
-                for (child in snapshot.children) {
-                    val tag = child.getValue(MusicTag::class.java)
-                    if (tag != null) tagsList.add(tag)
-                }
-                _musicTags.value = tagsList // Dibuja las chinchetas
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("SoundConnect", "Error al leer chinchetas: ${error.message}")
-            }
-        })
-    }
-
-    // --- CHAT GLOBAL ---
-    fun sendMessage(text: String) {
-        if (text.isBlank()) return
-
-        val ref = database.reference.child("chat_messages").push()
-        val newMessage = ChatMessage(
-            id = ref.key ?: "",
-            userName = "Amante de la música",
-            text = text,
-            timestamp = System.currentTimeMillis()
-        )
-
-        ref.setValue(newMessage) // Sube el mensaje a la nube
-            .addOnSuccessListener { Log.i("SoundConnect", "Mensaje enviado al chat") }
-            .addOnFailureListener { Log.e("SoundConnect", "Error al enviar mensaje: ${it.message}") }
-    }
-
-    private fun getChatMessages() {
-        val ref = database.reference.child("chat_messages")
-
-        ref.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val messagesList = mutableListOf<ChatMessage>()
-                for (child in snapshot.children) {
-                    val message = child.getValue(ChatMessage::class.java)
-                    if (message != null) {
-                        messagesList.add(message)
-                    }
-                }
-                _chatMessages.value = messagesList.sortedBy { it.timestamp } // Ordena por fecha
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("SoundConnect", "Error al leer el chat: ${error.message}")
-            }
-        })
     }
 
     override fun onCleared() {

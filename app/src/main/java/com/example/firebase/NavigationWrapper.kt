@@ -12,22 +12,25 @@ import com.example.firebase.presentation.login.LoginScreen
 import com.example.firebase.presentation.signup.SignupScreen
 import com.example.firebase.presentation.mapscreen.MapScreen
 import com.example.firebase.presentation.chatscreen.ChatScreen
+import com.example.firebase.presentation.chatscreen.ChatViewModel
+import com.example.firebase.presentation.mapscreen.MapViewModel
 
-// "sealed class" es como una lista cerrada de opciones.
 sealed class Screens(val route: String) {
-    object Initial : Screens("initial") // La pantalla de bienvenida
-    object Login : Screens("login")     // La pantalla de inicio de sesión
-    object Signup : Screens("signup")   // La pantalla de registro
-    object Home : Screens("home")       // La pantalla principal (Música)
-    object Map : Screens("map")         // La pantalla del mapa
-    object Chat : Screens("chat")       // La pantalla del chat global
+    object Initial : Screens("initial")
+    object Login : Screens("login")
+    object Signup : Screens("signup")
+    object Home : Screens("home")
+    object Map : Screens("map")
+    object Chat : Screens("chat")
 }
 
 @Composable
 fun NavigationWrapper(
     navHostController: NavHostController,
     authViewModel: AuthViewModel,
-    homeViewModel: HomeViewmodel
+    homeViewModel: HomeViewmodel,
+    chatViewModel: ChatViewModel,
+    mapViewModel: MapViewModel 
 ) {
     NavHost(navController = navHostController, startDestination = Screens.Initial.route) {
 
@@ -72,10 +75,11 @@ fun NavigationWrapper(
             HomeScreen(viewmodel = homeViewModel)
         }
         composable(Screens.Map.route) {
-            MapScreen(viewmodel = homeViewModel)
+            // Pasamos ambos ViewModels para que el mapa sepa qué canción está sonando
+            MapScreen(mapViewModel = mapViewModel, homeViewModel = homeViewModel)
         }
         composable(Screens.Chat.route) {
-            ChatScreen(viewmodel = homeViewModel)
+            ChatScreen(viewmodel = chatViewModel)
         }
     }
 }

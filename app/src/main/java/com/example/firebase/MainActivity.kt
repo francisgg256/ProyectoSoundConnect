@@ -31,7 +31,9 @@ import com.example.firebase.data.repository.AuthRepository
 import com.example.firebase.data.repository.MusicRepository
 import com.example.firebase.presentation.ThemeViewModel
 import com.example.firebase.presentation.auth.AuthViewModel
+import com.example.firebase.presentation.chatscreen.ChatViewModel
 import com.example.firebase.presentation.homescreen.HomeViewmodel
+import com.example.firebase.presentation.mapscreen.MapViewModel
 import com.example.firebase.presentation.sensors.ShakeDetector
 import com.example.firebase.ui.theme.FirebaseTheme
 import com.google.firebase.auth.ktx.auth
@@ -51,6 +53,10 @@ class MainActivity : ComponentActivity() {
         MusicRepository(RetrofitClient.apiService, appDatabase.artistDao())
     }
     private val homeViewModel by lazy { HomeViewmodel(musicRepository) }
+    
+    // ViewModels específicos
+    private val chatViewModel by lazy { ChatViewModel() }
+    private val mapViewModel by lazy { MapViewModel() }
 
     private val themeViewModel = ThemeViewModel()
 
@@ -108,7 +114,13 @@ class MainActivity : ComponentActivity() {
                             .padding(paddingValues),
                         color = MaterialTheme.colorScheme.background
                     ) {
-                        NavigationWrapper(navHostController, authViewModel, homeViewModel)
+                        NavigationWrapper(
+                            navHostController = navHostController,
+                            authViewModel = authViewModel,
+                            homeViewModel = homeViewModel,
+                            chatViewModel = chatViewModel,
+                            mapViewModel = mapViewModel
+                        )
                     }
                 }
             }

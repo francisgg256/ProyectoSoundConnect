@@ -14,10 +14,12 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 
 @Composable
-fun MapScreen(viewmodel: HomeViewmodel) {
-    // Obtenemos los datos del ViewModel
-    val tags by viewmodel.musicTags.collectAsState()
-    val currentPlayer by viewmodel.player.collectAsState()
+fun MapScreen(mapViewModel: MapViewModel, homeViewModel: HomeViewmodel) {
+    // 1. OBTENEMOS LAS CHINCHETAS (Esto ya lo tienes)
+    val tags by mapViewModel.musicTags.collectAsState()
+
+    // 2. OBTENEMOS LA CANCIÓN QUE ESTÁ SONANDO AHORA MISMO desde HomeViewmodel
+    val currentPlayer by homeViewModel.player.collectAsState()
 
     // Posición inicial del mapa (Madrid)
     val cameraPositionState = rememberCameraPositionState {
@@ -30,9 +32,9 @@ fun MapScreen(viewmodel: HomeViewmodel) {
         cameraPositionState = cameraPositionState,
         // Acción al tocar una parte vacía del mapa:
         onMapClick = { latLng ->
-            // Cogemos la canción actual o ponemos "Música desconocida"
+            // 3. AHORA SÍ, COGEMOS EL ARTISTA DE LA VARIABLE QUE HEMOS DECLARADO ARRIBA
             val artistName = currentPlayer?.artist?.name ?: "Música desconocida"
-            viewmodel.addMusicTag(artistName, latLng) // Subimos la chincheta
+            mapViewModel.addMusicTag(artistName, latLng) // Subimos la chincheta
         }
     ) {
         // Dibujamos todas las chinchetas (Markers) que hay guardadas en Firebase
