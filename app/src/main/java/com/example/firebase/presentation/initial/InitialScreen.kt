@@ -1,6 +1,9 @@
 package com.example.firebase.presentation.initial
 
-// --- IMPORTACIONES NECESARIAS ---
+import android.app.Activity
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,6 +21,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,108 +29,132 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Green
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.firebase.R
+import com.example.firebase.presentation.auth.AuthViewModel
 import com.example.firebase.ui.theme.BackgroundButton
 import com.example.firebase.ui.theme.Black
 import com.example.firebase.ui.theme.Gray
 import com.example.firebase.ui.theme.ShapeButton
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 
-// Función principal de la pantalla. Recibe "acciones" que se ejecutarán cuando se pulse un botón.
 @Composable
 fun InitialScreen(
+    viewModel: AuthViewModel? = null,
     navigateToLogin: () -> Unit = {},
     navigateToSignUp: () -> Unit = {},
-    onGoogleLoginClick: () -> Unit = {},
+    navigateToHome: () -> Unit = {},
     onFacebookLoginClick: () -> Unit = {}
 ) {
-    // Column apila los elementos uno debajo de otro.
+    val context = LocalContext.current
+
+    // 1. Configuramos el cliente de Google (La ventanita blanca)
+    val googleSignInClient = remember {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(context.getString(R.string.default_web_client_id)) // Coge la llave secreta generada
+            .requestEmail()
+            .build()
+        GoogleSignIn.getClient(context, gso)
+    }
+
+    // 2. Preparamos el "Lanzador" que esperará la respuesta de Google
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        // Quitamos el 'if' para capturar todos los errores
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            account?.idToken?.let { idToken ->
+                viewModel?.loginWithGoogle(
+                    idToken = idToken,
+                    onSuccess = { navigateToHome() },
+                    onError = { Log.e("Google", "Error de Firebase: La cuenta no pudo vincularse") }
+                )
+            }
+        } catch (e: ApiException) {
+            // ¡AQUÍ ESTÁ LA TRAMPA! Esto nos dirá el número exacto del error.
+            Log.e("Google", "Fallo al conectar con Google. Código de error: ${e.statusCode}")
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            // Dibuja un fondo con degradado (Brush) que va desde el color Gray al Black.
             .background(Brush.verticalGradient(listOf(Gray, Black), startY = 0f, endY = 600f)),
-        horizontalAlignment = Alignment.CenterHorizontally // Centra todo horizontalmente
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Spacer con weight(1f) actúa como un "muelle" invisible que empuja los elementos para distribuirlos.
         Spacer(modifier = Modifier.weight(1f))
-
-        // Logo de la app (en este caso el icono de Spotify)
+        
         Image(
             painter = painterResource(R.drawable.spotify),
             contentDescription = "Logo",
-            modifier = Modifier.clip(CircleShape).size(100.dp) // Lo recorta en forma de círculo
+            modifier = Modifier.clip(CircleShape).size(100.dp)
         )
-
+        
         Spacer(modifier = Modifier.weight(1f))
-
-        // Textos de bienvenida
         Text("Millones de canciones.", color = Color.White, fontSize = 38.sp, fontWeight = FontWeight.Bold)
         Text("Gratis en SoundConnect", color = Color.White, fontSize = 38.sp, fontWeight = FontWeight.Bold)
-
         Spacer(modifier = Modifier.weight(1f))
-
-        // Botón principal verde para registrarse
+        
         Button(
-            onClick = { navigateToSignUp() }, // Al hacer clic, navega a la pantalla de registro
+            onClick = { navigateToSignUp() },
             modifier = Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 32.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Green)
         ) {
             Text(text = "Regístrate gratis", color = Color.Black, fontWeight = FontWeight.Bold)
         }
-
+        
         Spacer(modifier = Modifier.height(8.dp))
-
-        // Usamos nuestro componente personalizado para el botón de Google
+        
+        // --- BOTÓN DE GOOGLE ---
         CustomButton(
             Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 32.dp)
                 .background(BackgroundButton).border(2.dp, ShapeButton, CircleShape)
-                .clickable { onGoogleLoginClick() },
-            painterResource(R.drawable.google),
+                .clickable { 
+                    // Al pulsar, abrimos la ventanita de Google
+                    launcher.launch(googleSignInClient.signInIntent) 
+                },
+            painterResource(R.drawable.google), 
             "Continuar con Google"
         )
-
+        
         Spacer(modifier = Modifier.height(8.dp))
-
-        // Usamos nuestro componente personalizado para el botón de Facebook
+        
         CustomButton(
             Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 32.dp)
                 .background(BackgroundButton).border(2.dp, ShapeButton, CircleShape)
                 .clickable { onFacebookLoginClick() },
-            painterResource(R.drawable.facebook),
+            painterResource(R.drawable.facebook), 
             "Continuar con Facebook"
         )
-
-        // Texto inferior para los que ya tienen cuenta (les lleva al Login)
+        
         Text(
-            text = "Iniciar Sesión",
-            color = Color.White,
-            modifier = Modifier.padding(24.dp).clickable { navigateToLogin() },
+            text = "Iniciar Sesión", 
+            color = Color.White, 
+            modifier = Modifier.padding(24.dp).clickable { navigateToLogin() }, 
             fontWeight = FontWeight.Bold
         )
-
+        
         Spacer(modifier = Modifier.weight(1f))
     }
 }
 
-// COMPONENTE REUTILIZABLE: Creamos una "plantilla" de botón para no tener que repetir código
-// con el botón de Google y el de Facebook.
 @Composable
 fun CustomButton(modifier: Modifier, painter: Painter, title: String) {
-    // Box superpone elementos uno encima del otro
     Box(modifier = modifier, contentAlignment = Alignment.CenterStart) {
-        // El icono de la red social a la izquierda
         Image(
             painter = painter,
             contentDescription = "",
             modifier = Modifier.padding(start = 16.dp).size(16.dp)
         )
-        // El texto centrado ocupando todo el ancho
         Text(
             text = title,
             color = Color.White,
@@ -135,11 +163,4 @@ fun CustomButton(modifier: Modifier, painter: Painter, title: String) {
             fontWeight = FontWeight.Bold
         )
     }
-}
-
-// Función que nos permite ver la vista previa (Preview) en el lado derecho de Android Studio
-@Preview(showBackground = true)
-@Composable
-fun InitialScreenPreview() {
-    InitialScreen()
 }

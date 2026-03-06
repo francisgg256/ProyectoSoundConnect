@@ -21,6 +21,13 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
+    // --- AÑADE ESTA NUEVA FUNCIÓN PARA GOOGLE ---
+    fun loginWithGoogle(idToken: String, onSuccess: () -> Unit, onError: () -> Unit) {
+        repository.loginWithGoogle(idToken) { success ->
+            if (success) onSuccess() else onError()
+        }
+    }
+
     // Función rápida para saber si el usuario ya había iniciado sesión antes (para saltarse el login al abrir la app).
     fun isUserLoggedIn(): Boolean = repository.getCurrentUser() != null
 }

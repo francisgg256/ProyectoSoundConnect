@@ -37,9 +37,15 @@ fun NavigationWrapper(
         composable(Screens.Initial.route) {
             // Si estamos en "initial", mostramos la InitialScreen.
             InitialScreen(
+                viewModel = authViewModel, // Le pasamos el cerebro
                 // Le damos las instrucciones de qué hacer si pulsan los botones:
                 navigateToLogin = { navHostController.navigate(Screens.Login.route) },
-                navigateToSignUp = { navHostController.navigate(Screens.Signup.route) }
+                navigateToSignUp = { navHostController.navigate(Screens.Signup.route) },
+                navigateToHome = { 
+                    navHostController.navigate(Screens.Home.route) {
+                        popUpTo(Screens.Initial.route) { inclusive = true }
+                    }
+                }
             )
         }
 

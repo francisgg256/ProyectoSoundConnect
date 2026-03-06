@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation("com.google.android.gms:play-services-auth:21.0.0")
     ksp(libs.androidx.room.compiler)
     implementation(libs.maps.compose)
     implementation(libs.play.services.maps)
