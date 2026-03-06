@@ -1,6 +1,5 @@
 package com.example.firebase.presentation.initial
 
-import android.app.Activity
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -50,25 +49,23 @@ fun InitialScreen(
     viewModel: AuthViewModel? = null,
     navigateToLogin: () -> Unit = {},
     navigateToSignUp: () -> Unit = {},
-    navigateToHome: () -> Unit = {},
-    onFacebookLoginClick: () -> Unit = {}
+    navigateToHome: () -> Unit = {}
 ) {
     val context = LocalContext.current
 
-    // 1. Configuramos el cliente de Google (La ventanita blanca)
+    // 1. Configuramos el cliente de Google
     val googleSignInClient = remember {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(context.getString(R.string.default_web_client_id)) // Coge la llave secreta generada
+            .requestIdToken(context.getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
         GoogleSignIn.getClient(context, gso)
     }
 
-    // 2. Preparamos el "Lanzador" que esperará la respuesta de Google
+    // 2. Lanzador de Google
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        // Quitamos el 'if' para capturar todos los errores
         val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
         try {
             val account = task.getResult(ApiException::class.java)
@@ -76,12 +73,11 @@ fun InitialScreen(
                 viewModel?.loginWithGoogle(
                     idToken = idToken,
                     onSuccess = { navigateToHome() },
-                    onError = { Log.e("Google", "Error de Firebase: La cuenta no pudo vincularse") }
+                    onError = { Log.e("Google", "Error de Firebase") }
                 )
             }
         } catch (e: ApiException) {
-            // ¡AQUÍ ESTÁ LA TRAMPA! Esto nos dirá el número exacto del error.
-            Log.e("Google", "Fallo al conectar con Google. Código de error: ${e.statusCode}")
+            Log.e("Google", "Fallo al conectar con Google. Código: ${e.statusCode}")
         }
     }
 
@@ -114,12 +110,10 @@ fun InitialScreen(
         
         Spacer(modifier = Modifier.height(8.dp))
         
-        // --- BOTÓN DE GOOGLE ---
         CustomButton(
             Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 32.dp)
                 .background(BackgroundButton).border(2.dp, ShapeButton, CircleShape)
                 .clickable { 
-                    // Al pulsar, abrimos la ventanita de Google
                     launcher.launch(googleSignInClient.signInIntent) 
                 },
             painterResource(R.drawable.google), 
@@ -127,14 +121,6 @@ fun InitialScreen(
         )
         
         Spacer(modifier = Modifier.height(8.dp))
-        
-        CustomButton(
-            Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 32.dp)
-                .background(BackgroundButton).border(2.dp, ShapeButton, CircleShape)
-                .clickable { onFacebookLoginClick() },
-            painterResource(R.drawable.facebook), 
-            "Continuar con Facebook"
-        )
         
         Text(
             text = "Iniciar Sesión", 

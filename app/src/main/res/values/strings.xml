@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">SoundConnect</string>
     <string name="default_web_client_id">932634519820-dprur3d1q3g2diagck50urt5fvoh8aq3.apps.googleusercontent.com</string>
+    <string name="facebook_app_id">1237985164611618</string>
+    <string name="facebook_client_token">62431c6ca6d7c42b01209efe0d87039b</string>
+    <string name="facebook_login_protocol_scheme">fb1237985164611618</string>
 </resources>

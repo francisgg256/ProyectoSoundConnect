@@ -14,7 +14,6 @@ import com.example.firebase.presentation.mapscreen.MapScreen
 import com.example.firebase.presentation.chatscreen.ChatScreen
 
 // "sealed class" es como una lista cerrada de opciones.
-// Aquí definimos los "nombres" oficiales (rutas) de todas nuestras pantallas.
 sealed class Screens(val route: String) {
     object Initial : Screens("initial") // La pantalla de bienvenida
     object Login : Screens("login")     // La pantalla de inicio de sesión
@@ -26,19 +25,15 @@ sealed class Screens(val route: String) {
 
 @Composable
 fun NavigationWrapper(
-    navHostController: NavHostController, // El "conductor" que nos lleva de una pantalla a otra.
-    authViewModel: AuthViewModel,         // El "cerebro" para las contraseñas.
-    homeViewModel: HomeViewmodel          // El "cerebro" para la música, mapas y chat.
+    navHostController: NavHostController,
+    authViewModel: AuthViewModel,
+    homeViewModel: HomeViewmodel
 ) {
-    // NavHost es el contenedor principal. Le decimos que empiece en la ruta "Initial" (Bienvenida).
     NavHost(navController = navHostController, startDestination = Screens.Initial.route) {
 
-        // composable(...) define una parada en nuestro mapa de carreteras.
         composable(Screens.Initial.route) {
-            // Si estamos en "initial", mostramos la InitialScreen.
             InitialScreen(
-                viewModel = authViewModel, // Le pasamos el cerebro
-                // Le damos las instrucciones de qué hacer si pulsan los botones:
+                viewModel = authViewModel,
                 navigateToLogin = { navHostController.navigate(Screens.Login.route) },
                 navigateToSignUp = { navHostController.navigate(Screens.Signup.route) },
                 navigateToHome = { 
@@ -53,13 +48,11 @@ fun NavigationWrapper(
             LoginScreen(
                 viewModel = authViewModel,
                 navigateToHome = {
-                    // Si el login es correcto, vamos a "home"...
                     navHostController.navigate(Screens.Home.route) {
-                        // ... y "popUpTo(Initial)" significa que borramos el historial para que si pulsa "Atrás", salga de la app en vez de volver a la pantalla de Login.
                         popUpTo(Screens.Initial.route) { inclusive = true }
                     }
                 },
-                navigateBack = { navHostController.popBackStack() } // Vuelve a la pantalla anterior.
+                navigateBack = { navHostController.popBackStack() }
             )
         }
 
@@ -75,9 +68,8 @@ fun NavigationWrapper(
             )
         }
 
-        // Las tres pantallas principales a las que llegamos tras el login:
         composable(Screens.Home.route) {
-            HomeScreen(viewmodel = homeViewModel) // Le pasamos el HomeViewModel para que tenga datos.
+            HomeScreen(viewmodel = homeViewModel)
         }
         composable(Screens.Map.route) {
             MapScreen(viewmodel = homeViewModel)
