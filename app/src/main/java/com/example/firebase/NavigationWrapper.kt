@@ -75,7 +75,6 @@ fun NavigationWrapper(
             HomeScreen(viewmodel = homeViewModel)
         }
         composable(Screens.Map.route) {
-            // Pasamos ambos ViewModels para que el mapa sepa qué canción está sonando
             MapScreen(mapViewModel = mapViewModel, homeViewModel = homeViewModel)
         }
         composable(Screens.Chat.route) {

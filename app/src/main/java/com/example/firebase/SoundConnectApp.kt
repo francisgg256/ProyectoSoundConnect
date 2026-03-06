@@ -8,8 +8,6 @@ import com.google.android.gms.maps.OnMapsSdkInitializedCallback
 class SoundConnectApp : Application(), OnMapsSdkInitializedCallback {
     override fun onCreate() {
         super.onCreate()
-        // Initialize Maps SDK with the latest renderer to avoid some legacy database issues
-        // like "Database lock unavailable"
         MapsInitializer.initialize(applicationContext, MapsInitializer.Renderer.LATEST, this)
     }
 

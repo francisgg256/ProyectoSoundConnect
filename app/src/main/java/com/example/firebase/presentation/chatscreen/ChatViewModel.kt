@@ -29,7 +29,7 @@ class ChatViewModel : ViewModel() {
         val ref = database.reference.child("chat_messages").push()
         val newMessage = ChatMessage(
             id = ref.key ?: "",
-            userName = "Amante de la música", // Aquí en el futuro podrías poner el nombre real del usuario logueado
+            userName = "Amante de la música",
             text = text,
             timestamp = System.currentTimeMillis()
         )

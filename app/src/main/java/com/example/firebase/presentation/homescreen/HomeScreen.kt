@@ -53,18 +53,16 @@ import com.example.firebase.ui.theme.Purple40
 
 @Composable
 fun HomeScreen(viewmodel: HomeViewmodel) {
-    // Escuchamos las variables del ViewModel
     val artists by viewmodel.artist.collectAsState()
     val player by viewmodel.player.collectAsState()
     val favorites by viewmodel.favorites.collectAsState()
     val profileImage by viewmodel.profileImage.collectAsState()
 
-    // Preparador de la cámara del dispositivo
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap: Bitmap? ->
         if (bitmap != null) {
-            viewmodel.updateProfileImage(bitmap) // Guarda la foto en el ViewModel
+            viewmodel.updateProfileImage(bitmap)
         }
     }
 
@@ -73,7 +71,7 @@ fun HomeScreen(viewmodel: HomeViewmodel) {
         favorites = favorites,
         player = player,
         profileImage = profileImage,
-        onCameraClick = { cameraLauncher.launch(null) }, // Al hacer clic, abre cámara
+        onCameraClick = { cameraLauncher.launch(null) },
         onArtistClick = { viewmodel.addPlayer(it) },
         onPlayClick = { viewmodel.onPlaySelected() },
         onCancelClick = { viewmodel.onCancelSelected() },
@@ -95,21 +93,19 @@ fun HomeScreenContent(
     onSearch: (String) -> Unit,
     onFavoriteClick: (Artist) -> Unit
 ) {
-    var searchQuery by remember { mutableStateOf("") } // Recuerda el texto escrito
+    var searchQuery by remember { mutableStateOf("") }
 
     Column(
         Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // --- CABECERA DE PERFIL ---
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Dibuja la foto redonda si existe, si no un icono por defecto
             if (profileImage != null) {
                 Image(
                     bitmap = profileImage.asImageBitmap(),
@@ -142,7 +138,6 @@ fun HomeScreenContent(
             )
         }
 
-        // --- CAJA DE BÚSQUEDA ---
         TextField(
             value = searchQuery,
             onValueChange = {
@@ -169,10 +164,8 @@ fun HomeScreenContent(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
 
-        // --- LISTA DE ARTISTAS ---
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(artists) { artist ->
-                // Comprueba si este artista en concreto está en favoritos
                 val isFavorite = favorites.any { it.name.equals(artist.name, ignoreCase = true) }
 
                 Row(
@@ -182,7 +175,6 @@ fun HomeScreenContent(
                         .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Dibuja la foto del artista desde internet
                     AsyncImage(
                         modifier = Modifier
                             .size(60.dp)
@@ -198,7 +190,6 @@ fun HomeScreenContent(
                         modifier = Modifier.weight(1f)
                     )
 
-                    // Dibuja el corazón
                     IconButton(onClick = { onFavoriteClick(artist) }) {
                         Icon(
                             imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
@@ -210,8 +201,6 @@ fun HomeScreenContent(
             }
         }
 
-        // --- REPRODUCTOR ---
-        // Solo dibuja el reproductor morado si 'player' no es null
         player?.let { PlayerComponent(it, onPlayClick, onCancelClick) }
     }
 }
@@ -219,14 +208,13 @@ fun HomeScreenContent(
 @Composable
 fun PlayerComponent(player: Player, onPlaySelected: () -> Unit, onCancelSelected: () -> Unit) {
 
-    // Cambia el icono dependiendo de si la música está en Play o Pause
     val icon = if (player.play == true) R.drawable.ic_pause else R.drawable.ic_play
 
     Row(
         Modifier
             .height(50.dp)
             .fillMaxWidth()
-            .background(Purple40), // Barra morada
+            .background(Purple40),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -240,14 +228,14 @@ fun PlayerComponent(player: Player, onPlaySelected: () -> Unit, onCancelSelected
             contentDescription = "play/pause",
             modifier = Modifier
                 .size(40.dp)
-                .clickable(onClick = onPlaySelected) // Acción de pausar/reanudar
+                .clickable(onClick = onPlaySelected)
         )
         Image(
             painter = painterResource(id = R.drawable.ic_close),
             contentDescription = "Close",
             modifier = Modifier
                 .size(40.dp)
-                .clickable(onClick = onCancelSelected) // Acción de cerrar
+                .clickable(onClick = onCancelSelected)
         )
     }
 }

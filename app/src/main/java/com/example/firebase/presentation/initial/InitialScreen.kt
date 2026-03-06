@@ -53,7 +53,6 @@ fun InitialScreen(
 ) {
     val context = LocalContext.current
 
-    // 1. Configuramos el cliente de Google
     val googleSignInClient = remember {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(context.getString(R.string.default_web_client_id))
@@ -62,7 +61,6 @@ fun InitialScreen(
         GoogleSignIn.getClient(context, gso)
     }
 
-    // 2. Lanzador de Google
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->

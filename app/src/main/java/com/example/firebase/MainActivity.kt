@@ -41,10 +41,8 @@ import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
 
-    // Variables globales de la Activity. "lateinit" significa que las inicializaremos más tarde.
     private lateinit var navHostController: NavHostController
 
-    // Construimos los Repositorios y ViewModels usando "by lazy" (solo se crean cuando se necesitan por primera vez).
     private val authRepository by lazy { AuthRepository(Firebase.auth) }
     private val authViewModel by lazy { AuthViewModel(authRepository) }
 
@@ -53,8 +51,7 @@ class MainActivity : ComponentActivity() {
         MusicRepository(RetrofitClient.apiService, appDatabase.artistDao())
     }
     private val homeViewModel by lazy { HomeViewmodel(musicRepository) }
-    
-    // ViewModels específicos
+
     private val chatViewModel by lazy { ChatViewModel() }
     private val mapViewModel by lazy { MapViewModel() }
 

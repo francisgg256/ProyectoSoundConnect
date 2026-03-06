@@ -1,6 +1,5 @@
 package com.example.firebase.presentation.login
 
-// --- IMPORTACIONES NECESARIAS ---
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -38,51 +37,44 @@ import com.example.firebase.ui.theme.Black
 import com.example.firebase.ui.theme.SelectedField
 import com.example.firebase.ui.theme.UnselectedField
 
-// Función "Inteligente": Se comunica con el ViewModel
 @Composable
 fun LoginScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateBack: () -> Unit) {
-    // Obtenemos el contexto para poder mostrar el Toast
     val context = LocalContext.current
 
     LoginContent(
-        // Le pasamos la lógica al botón de login
         onLoginClick = { email, password ->
             viewModel.login(
                 email = email,
                 password = password,
                 onSuccess = {
-                    navigateToHome() // Si Firebase dice que los datos son correctos, vamos al Home
+                    navigateToHome()
                     Log.i("Ignacio", "LOGIN OK")
                 },
                 onError = {
-                    Log.i("Ignacio", "LOGIN KO") // Si falla (mala contraseña), da error en consola
-                    // Mostramos el mensaje de error al usuario
+                    Log.i("Ignacio", "LOGIN KO")
                     Toast.makeText(context, "Error al iniciar sesión. Revisa tus datos.", Toast.LENGTH_SHORT).show()
                 }
             )
         },
-        navigateBack = navigateBack // Acción para la flecha de volver atrás
+        navigateBack = navigateBack
     )
 }
 
-// Función "Tonta": Solo dibuja la interfaz, no sabe nada de Firebase
 @Composable
 fun LoginContent(
     onLoginClick: (String, String) -> Unit,
     navigateBack: () -> Unit
 ) {
-    // Variables de estado: Recuerdan lo que el usuario escribe en las cajas de texto
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Black) // Fondo negro
+            .background(Black)
             .padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Cabecera con la flecha para volver atrás
         Row(){
             Icon(
                 painter = painterResource(id = R.drawable.ic_back_24),
@@ -91,16 +83,15 @@ fun LoginContent(
                 modifier = Modifier
                     .padding(vertical = 24.dp)
                     .size(24.dp)
-                    .clickable { navigateBack() } // Al tocarla, vuelve atrás
+                    .clickable { navigateBack() }
             )
             Spacer(modifier = Modifier.weight(1f))
         }
 
-        // Campo de Email
         Text("Email", color = White, fontWeight = FontWeight.Bold, fontSize = 40.sp)
         TextField(
-            value = email, // Muestra lo que hay guardado en la variable email
-            onValueChange = { email = it }, // Actualiza la variable con cada nueva letra
+            value = email,
+            onValueChange = { email = it },
             modifier = Modifier.fillMaxWidth(),
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = UnselectedField,
@@ -110,7 +101,6 @@ fun LoginContent(
 
         Spacer(Modifier.height(48.dp))
 
-        // Campo de Contraseña
         Text("Password", color = White, fontWeight = FontWeight.Bold, fontSize = 40.sp)
         TextField(
             value = password,
@@ -124,14 +114,12 @@ fun LoginContent(
 
         Spacer(Modifier.height(48.dp))
 
-        // Botón de iniciar sesión
         Button(onClick = { onLoginClick(email, password) }) {
             Text(text = "Login")
         }
     }
 }
 
-// Vista previa
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {

@@ -20,10 +20,8 @@ import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
 import java.util.*
 
-// AQUÍ ESTABA EL ERROR: Ahora recibe ChatViewModel, no HomeViewmodel
 @Composable
 fun ChatScreen(viewmodel: ChatViewModel) {
-    // Obtenemos todos los mensajes de Firebase
     val messages by viewmodel.chatMessages.collectAsState()
     var textToSend by remember { mutableStateOf("") } 
     

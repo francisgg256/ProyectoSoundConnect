@@ -25,41 +25,35 @@ import kotlinx.coroutines.launch
 
 class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() {
 
-    // 1. CONEXIONES: Base de datos en Europa y Reproductor de Audio
     private var database: FirebaseDatabase = Firebase.database("https://soundconnect-3c760-default-rtdb.europe-west1.firebasedatabase.app")
     private var mediaPlayer: MediaPlayer? = null
 
-    // 2. ESTADOS: Variables que la pantalla "escucha" para redibujarse
     private val _artist = MutableStateFlow<List<Artist>>(emptyList())
     val artist: StateFlow<List<Artist>> = _artist
 
     private val _player = MutableStateFlow<Player?>(null)
-    val player: StateFlow<Player?> = _player // Controla la barra morada inferior
+    val player: StateFlow<Player?> = _player
 
     private val _favorites = MutableStateFlow<List<ArtistEntity>>(emptyList())
-    val favorites: StateFlow<List<ArtistEntity>> = _favorites // Lista de corazones rojos
+    val favorites: StateFlow<List<ArtistEntity>> = _favorites
 
     private val _profileImage = MutableStateFlow<android.graphics.Bitmap?>(null)
-    val profileImage: StateFlow<android.graphics.Bitmap?> = _profileImage // Foto del usuario
+    val profileImage: StateFlow<android.graphics.Bitmap?> = _profileImage
 
-    // Función para guardar la foto que devuelve la cámara
     fun updateProfileImage(bitmap: android.graphics.Bitmap) {
         _profileImage.value = bitmap
     }
 
-    // El bloque init se ejecuta automáticamente al abrir la app
     init {
-        searchArtists("rock") // Búsqueda por defecto
-        getPlayer()           // Escucha si hay música sonando en la nube
-        getFavorites()        // Carga los favoritos de la memoria del móvil
+        searchArtists("rock")
+        getPlayer()
+        getFavorites()
     }
 
-    // --- MÚSICA Y FAVORITOS ---
     fun searchArtists(query: String) {
         if (query.isBlank()) return
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Pide datos a Deezer a través del Repositorio
                 val results = musicRepository.searchArtists(query)
                 _artist.value = results
             } catch (e: Exception) {
@@ -78,15 +72,14 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
 
     fun onFavoriteClick(artist: Artist) {
         viewModelScope.launch(Dispatchers.IO) {
-            musicRepository.toggleFavorite(artist) // Añade o quita el favorito
+            musicRepository.toggleFavorite(artist)
         }
     }
 
-    // --- REPRODUCTOR SINCRONIZADO EN FIREBASE ---
     private fun collectPlayer(): Flow<DataSnapshot> = callbackFlow {
         val listener = object: ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                trySend(snapshot).isSuccess // Avisa si hay cambios en Firebase
+                trySend(snapshot).isSuccess
             }
             override fun onCancelled(error: DatabaseError) {
                 Log.e("SoundConnect","Firebase Error: ${error.message}")
@@ -107,7 +100,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
                 .collect { snapshot ->
                     try {
                         val player = snapshot.getValue(Player::class.java)
-                        _player.value = player // Muestra la barra morada si hay datos
+                        _player.value = player
                     } catch (e: Exception) {
                         Log.e("SoundConnect", "Fallo al leer Firebase: ${e.message}")
                     }
@@ -117,14 +110,12 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
 
     fun onPlaySelected() {
         if (player.value != null) {
-            val willPlay = !(player.value?.play ?: false) // Alterna entre Play y Pause
+            val willPlay = !(player.value?.play ?: false)
             val currentPlayer = _player.value?.copy(play = willPlay)
 
-            // Avisa a la nube del cambio
             val ref = database.reference.child("player")
             ref.setValue(currentPlayer)
 
-            // Descarga el audio mp3 y lo reproduce si le dimos a Play
             if (willPlay) {
                 val artistName = currentPlayer?.artist?.name ?: return
                 viewModelScope.launch(Dispatchers.IO) {
@@ -146,14 +137,13 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
 
     fun onCancelSelected() {
         val ref = database.reference.child("player")
-        ref.setValue(null) // Borra la carpeta player de Firebase
+        ref.setValue(null)
 
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
     }
 
-    // Se llama al agitar el móvil (Acelerómetro)
     fun recommendRandomArtist() {
         val randomArtists = listOf(
             "Michael Jackson", "Queen", "Dua Lipa", "Eminem",
@@ -164,7 +154,6 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
         searchArtists(surpriseArtist)
     }
 
-    // Se ejecuta al hacer clic en un artista de la lista
     fun addPlayer(artist: Artist) {
         val ref = database.reference.child("player")
         val player = Player(artist, play = true)
@@ -194,7 +183,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
 
     override fun onCleared() {
         super.onCleared()
-        mediaPlayer?.release() // Limpia la memoria al cerrar la app
+        mediaPlayer?.release()
         mediaPlayer = null
     }
 }

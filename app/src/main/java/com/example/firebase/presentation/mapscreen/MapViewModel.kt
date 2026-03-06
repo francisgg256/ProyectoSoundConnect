@@ -18,7 +18,7 @@ class MapViewModel : ViewModel() {
     private var database: FirebaseDatabase = Firebase.database("https://soundconnect-3c760-default-rtdb.europe-west1.firebasedatabase.app")
 
     private val _musicTags = MutableStateFlow<List<MusicTag>>(emptyList())
-    val musicTags: StateFlow<List<MusicTag>> = _musicTags // Chinchetas del mapa
+    val musicTags: StateFlow<List<MusicTag>> = _musicTags
 
     init {
         getMusicTags()
@@ -33,7 +33,7 @@ class MapViewModel : ViewModel() {
             lat = latLng.latitude,
             lng = latLng.longitude
         )
-        ref.setValue(newTag) // Sube la chincheta a Firebase
+        ref.setValue(newTag)
     }
 
     private fun getMusicTags() {
@@ -45,7 +45,7 @@ class MapViewModel : ViewModel() {
                     val tag = child.getValue(MusicTag::class.java)
                     if (tag != null) tagsList.add(tag)
                 }
-                _musicTags.value = tagsList // Dibuja las chinchetas
+                _musicTags.value = tagsList
             }
 
             override fun onCancelled(error: DatabaseError) {
