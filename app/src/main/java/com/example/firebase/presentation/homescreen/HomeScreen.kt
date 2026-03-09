@@ -51,35 +51,44 @@ import com.example.firebase.data.model.Artist
 import com.example.firebase.data.model.Player
 import com.example.firebase.ui.theme.Purple40
 
+// 1. PANTALLA ENVOLTORIO (STATE HOISTING)
+// Esta primera función sirve solo para "observar" los datos del ViewModel y pasárselos a la pantalla visual.
 @Composable
 fun HomeScreen(viewmodel: HomeViewmodel) {
-    val artists by viewmodel.artist.collectAsState()
-    val player by viewmodel.player.collectAsState()
-    val favorites by viewmodel.favorites.collectAsState()
-    val profileImage by viewmodel.profileImage.collectAsState()
+    // Escuchamos en tiempo real 4 cosas diferentes (StateFlows):
+    val artists by viewmodel.artist.collectAsState() // Resultados de la búsqueda de Deezer
+    val player by viewmodel.player.collectAsState()  // Lo que está sonando ahora mismo
+    val favorites by viewmodel.favorites.collectAsState() // Favoritos guardados en Room
+    val profileImage by viewmodel.profileImage.collectAsState() // Foto de perfil de la cámara
 
+    // --- MAGIA DE LA CÁMARA (RA3) ---
+    // Launcher que pide a Android abrir la app nativa de cámara.
+    // TakePicturePreview() devuelve directamente un 'Bitmap' (miniatura) a la memoria RAM.
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap: Bitmap? ->
         if (bitmap != null) {
+            // Si el usuario sacó la foto y la confirmó, la guardamos en el ViewModel
             viewmodel.updateProfileImage(bitmap)
         }
     }
 
+    // Llamamos a la pantalla "física" real y le pasamos los datos y las funciones (eventos)
     HomeScreenContent(
         artists = artists,
         favorites = favorites,
         player = player,
         profileImage = profileImage,
-        onCameraClick = { cameraLauncher.launch(null) },
-        onArtistClick = { viewmodel.addPlayer(it) },
-        onPlayClick = { viewmodel.onPlaySelected() },
-        onCancelClick = { viewmodel.onCancelSelected() },
-        onSearch = { viewmodel.searchArtists(it) },
-        onFavoriteClick = { viewmodel.onFavoriteClick(it) }
+        onCameraClick = { cameraLauncher.launch(null) }, // Al hacer clic en la foto, abre la cámara
+        onArtistClick = { viewmodel.addPlayer(it) }, // Pone la canción a reproducirse
+        onPlayClick = { viewmodel.onPlaySelected() }, // Botón Play/Pausa
+        onCancelClick = { viewmodel.onCancelSelected() }, // Cierra el reproductor
+        onSearch = { viewmodel.searchArtists(it) }, // Busca en internet
+        onFavoriteClick = { viewmodel.onFavoriteClick(it) } // Añade/quita de Room
     )
 }
 
+// 2. LA INTERFAZ VISUAL REAL (UI)
 @Composable
 fun HomeScreenContent(
     artists: List<Artist>,
@@ -93,6 +102,7 @@ fun HomeScreenContent(
     onSearch: (String) -> Unit,
     onFavoriteClick: (Artist) -> Unit
 ) {
+    // Variable local para guardar lo que el usuario teclea en la barra de búsqueda
     var searchQuery by remember { mutableStateOf("") }
 
     Column(
@@ -100,23 +110,26 @@ fun HomeScreenContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        // --- CABECERA (FOTO DE PERFIL Y SALUDO) ---
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Si hay una foto tomada con la cámara, la mostramos...
             if (profileImage != null) {
                 Image(
-                    bitmap = profileImage.asImageBitmap(),
+                    bitmap = profileImage.asImageBitmap(), // Convierte el Bitmap normal a uno de Jetpack Compose
                     contentDescription = "Foto de perfil",
                     modifier = Modifier
                         .size(60.dp)
-                        .clip(CircleShape)
-                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                        .clickable { onCameraClick() }
+                        .clip(CircleShape) // La recorta en forma de círculo perfecto
+                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) // Borde dinámico
+                        .clickable { onCameraClick() } // Si la tocas, puedes echarte otra foto
                 )
             } else {
+                // Si todavía no hay foto, mostramos un icono gris genérico
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = "Añadir foto",
@@ -138,11 +151,12 @@ fun HomeScreenContent(
             )
         }
 
+        // --- BARRA DE BÚSQUEDA ---
         TextField(
             value = searchQuery,
             onValueChange = {
-                searchQuery = it
-                onSearch(it)
+                searchQuery = it // Actualiza el texto en pantalla
+                onSearch(it) // Ejecuta la llamada a Retrofit/Deezer al instante
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -156,6 +170,7 @@ fun HomeScreenContent(
             )
         )
 
+        // --- TÍTULO DE LISTA ---
         Text(
             text = "Resultados de búsqueda",
             color = MaterialTheme.colorScheme.onBackground,
@@ -164,17 +179,23 @@ fun HomeScreenContent(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
 
+        // --- LISTA DE RESULTADOS DE LA API (LazyColumn) ---
+        // Usamos modifier.weight(1f) para que ocupe todo el espacio central sobrante
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(artists) { artist ->
+
+                // COMPROBACIÓN DE FAVORITOS (Reactivo)
+                // Mira si el artista actual que ha llegado de internet, ya está en nuestra BD local
                 val isFavorite = favorites.any { it.name.equals(artist.name, ignoreCase = true) }
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onArtistClick(artist) }
+                        .clickable { onArtistClick(artist) } // Al tocar la fila, se pone a reproducir
                         .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // AsyncImage (Coil): Descarga asíncronamente la foto del artista desde la URL
                     AsyncImage(
                         modifier = Modifier
                             .size(60.dp)
@@ -190,10 +211,13 @@ fun HomeScreenContent(
                         modifier = Modifier.weight(1f)
                     )
 
+                    // BOTÓN DE FAVORITO (Corazón)
                     IconButton(onClick = { onFavoriteClick(artist) }) {
                         Icon(
+                            // Si isFavorite es true pone el corazón relleno, si no, solo el contorno
                             imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Favorite",
+                            // Si isFavorite es true lo pinta de rojo
                             tint = if (isFavorite) Color.Red else Color.Gray
                         )
                     }
@@ -201,28 +225,35 @@ fun HomeScreenContent(
             }
         }
 
+        // --- REPRODUCTOR (BARRA INFERIOR) ---
+        // El bloque 'let' hace que esto SOLO se dibuje en pantalla si hay una canción sonando (si player no es nulo)
         player?.let { PlayerComponent(it, onPlayClick, onCancelClick) }
     }
 }
 
+// 3. COMPONENTE DEL REPRODUCTOR (El rectángulo inferior)
 @Composable
 fun PlayerComponent(player: Player, onPlaySelected: () -> Unit, onCancelSelected: () -> Unit) {
 
+    // Decide qué icono mostrar (Play o Pausa) dependiendo del estado que manda Firebase
     val icon = if (player.play == true) R.drawable.ic_pause else R.drawable.ic_play
 
     Row(
         Modifier
             .height(50.dp)
             .fillMaxWidth()
-            .background(Purple40),
+            .background(Purple40), // Usa el color morado de nuestro tema
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Nombre de la canción
         Text(
             text = player.artist?.name.orEmpty(),
             modifier = Modifier.padding(horizontal = 12.dp),
             color = Color.White
         )
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(1f)) // Empuja los botones hacia la derecha del todo
+
+        // Botón Play/Pausa
         Image(
             painter = painterResource(id = icon),
             contentDescription = "play/pause",
@@ -230,6 +261,7 @@ fun PlayerComponent(player: Player, onPlaySelected: () -> Unit, onCancelSelected
                 .size(40.dp)
                 .clickable(onClick = onPlaySelected)
         )
+        // Botón Cerrar (X)
         Image(
             painter = painterResource(id = R.drawable.ic_close),
             contentDescription = "Close",

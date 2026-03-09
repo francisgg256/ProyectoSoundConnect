@@ -13,13 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -41,8 +35,10 @@ import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
 
+    // --- 1. PROPIEDADES DE NAVEGACIÓN Y ARQUITECTURA ---
     private lateinit var navHostController: NavHostController
 
+    // Inyección de Dependencias Manual (usando 'by lazy' para ahorrar memoria hasta que se necesiten)
     private val authRepository by lazy { AuthRepository(Firebase.auth) }
     private val authViewModel by lazy { AuthViewModel(authRepository) }
 
@@ -55,46 +51,67 @@ class MainActivity : ComponentActivity() {
     private val chatViewModel by lazy { ChatViewModel() }
     private val mapViewModel by lazy { MapViewModel() }
 
+    // ViewModel que controla el tema claro/oscuro dinámico (Sensor de Luz)
     private val themeViewModel = ThemeViewModel()
 
+    // --- 2. PROPIEDADES DE SENSORES (ACELERÓMETRO) ---
     private lateinit var shakeDetector: ShakeDetector
     private var accelerometer: Sensor? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
+        // Habilita que el contenido se dibuje bajo las barras del sistema (Edge to Edge)
         enableEdgeToEdge()
 
+        // Inicializamos el detector de agitación.
+        // Cuando detecte un "shake", llamamos a la función de recomendación aleatoria.
         shakeDetector = ShakeDetector {
             homeViewModel.recommendRandomArtist()
         }
 
+        // Accedemos al gestor de sensores del hardware
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
         setContent {
+            // Inicializamos el motor de navegación de Compose
             navHostController = rememberNavController()
 
+            // Aplicamos nuestro Tema Personalizado.
+            // darkTheme observa el valor del sensor de luz en tiempo real.
             FirebaseTheme(darkTheme = themeViewModel.isDarkTheme.value) {
+
+                // Scaffold es la estructura básica (hueco para barra superior, inferior y contenido)
                 Scaffold(
                     bottomBar = {
+                        // Lógica para mostrar la barra solo en las pantallas principales
                         val navBackStackEntry by navHostController.currentBackStackEntryAsState()
                         val currentRoute = navBackStackEntry?.destination?.route
 
-                        if (currentRoute == Screens.Home.route || currentRoute == Screens.Map.route || currentRoute == Screens.Chat.route) {
+                        val showBottomBar = currentRoute in listOf(
+                            Screens.Home.route,
+                            Screens.Map.route,
+                            Screens.Chat.route
+                        )
+
+                        if (showBottomBar) {
                             NavigationBar {
+                                // Item: Música
                                 NavigationBarItem(
                                     icon = { Icon(Icons.Default.List, contentDescription = "Música") },
                                     label = { Text("Música") },
                                     selected = currentRoute == Screens.Home.route,
                                     onClick = { navHostController.navigate(Screens.Home.route) { launchSingleTop = true } }
                                 )
+                                // Item: Mapa
                                 NavigationBarItem(
                                     icon = { Icon(Icons.Default.LocationOn, contentDescription = "Mapa") },
                                     label = { Text("Mapa") },
                                     selected = currentRoute == Screens.Map.route,
                                     onClick = { navHostController.navigate(Screens.Map.route) { launchSingleTop = true } }
                                 )
+                                // Item: Chat
                                 NavigationBarItem(
                                     icon = { Icon(Icons.Default.Email, contentDescription = "Chat") },
                                     label = { Text("Chat") },
@@ -105,12 +122,14 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 ) { paddingValues ->
+                    // El contenido principal de la app
                     Surface(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(paddingValues),
                         color = MaterialTheme.colorScheme.background
                     ) {
+                        // Invocamos al Wrapper que contiene todas las rutas
                         NavigationWrapper(
                             navHostController = navHostController,
                             authViewModel = authViewModel,
@@ -124,10 +143,16 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // --- 3. CICLO DE VIDA Y SENSORES ---
+
     override fun onResume() {
         super.onResume()
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
+        // Empezamos a escuchar al sensor de luz (Modo Oscuro)
         themeViewModel.startListening(sensorManager)
+
+        // Empezamos a escuchar al acelerómetro (Agitar)
         accelerometer?.let {
             sensorManager.registerListener(shakeDetector, it, SensorManager.SENSOR_DELAY_UI)
         }
@@ -136,6 +161,8 @@ class MainActivity : ComponentActivity() {
     override fun onPause() {
         super.onPause()
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
+        // ¡IMPORTANTE! Liberamos los sensores para no drenar la batería
         themeViewModel.stopListening(sensorManager)
         sensorManager.unregisterListener(shakeDetector)
     }

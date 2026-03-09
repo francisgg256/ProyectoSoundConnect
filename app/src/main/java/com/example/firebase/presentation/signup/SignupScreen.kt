@@ -37,34 +37,41 @@ import com.example.firebase.ui.theme.SelectedField
 import com.example.firebase.ui.theme.UnselectedField
 
 @Composable
-fun SignupScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateBack: () -> Unit) {
-
+fun SignupScreen(
+    viewModel: AuthViewModel,
+    navigateToHome: () -> Unit,
+    navigateBack: () -> Unit
+) {
+    // Obtenemos el contexto para poder lanzar el Toast en caso de error
     val context = LocalContext.current
 
+    // ESTADOS LOCALES: Guardan lo que el usuario escribe antes de darle al botón
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Black)
+            .background(Black) // Fondo temático oscuro
             .padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
+        // --- BOTÓN VOLVER ---
         Row(){
             Icon(
                 painter = painterResource(id = R.drawable.ic_back_24),
-                contentDescription = "",
+                contentDescription = "Volver",
                 tint = White,
                 modifier = Modifier
                     .padding(vertical = 24.dp)
                     .size(24.dp)
-                    .clickable { navigateBack() }
+                    .clickable { navigateBack() } // Ejecuta el lambda de navegación hacia atrás
             )
             Spacer(modifier = Modifier.weight(1f))
         }
 
+        // --- CAMPO EMAIL ---
         Text("Email", color = White, fontWeight = FontWeight.Bold, fontSize = 40.sp)
         TextField(
             value = email,
@@ -72,12 +79,15 @@ fun SignupScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateB
             modifier = Modifier.fillMaxWidth(),
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = UnselectedField,
-                focusedContainerColor = SelectedField
+                focusedContainerColor = SelectedField,
+                unfocusedTextColor = White,
+                focusedTextColor = White
             )
         )
 
         Spacer(Modifier.height(48.dp))
 
+        // --- CAMPO PASSWORD ---
         Text("Password", color = White, fontWeight = FontWeight.Bold, fontSize = 40.sp)
         TextField(
             value = password,
@@ -85,21 +95,27 @@ fun SignupScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateB
             modifier = Modifier.fillMaxWidth(),
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = UnselectedField,
-                focusedContainerColor = SelectedField
+                focusedContainerColor = SelectedField,
+                unfocusedTextColor = White,
+                focusedTextColor = White
             )
         )
 
         Spacer(Modifier.height(48.dp))
 
+        // --- BOTÓN DE REGISTRO ---
         Button(onClick = {
+            // Llamamos a la lógica de registro del ViewModel
             viewModel.signUp(
                 email = email,
                 password = password,
                 onSuccess = {
+                    // Si Firebase crea el usuario con éxito, navegamos al Home
                     Log.i("Francisco", "Registro OK")
                     navigateToHome()
                 },
                 onError = {
+                    // Si hay error (ej: email mal formado o ya existente), avisamos al usuario
                     Log.i("Francisco", "Registro KO")
                     Toast.makeText(context, "Error al registrarse. Inténtalo de nuevo.", Toast.LENGTH_SHORT).show()
                 }
