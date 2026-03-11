@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.example.firebase.R
 import com.example.firebase.presentation.homescreen.HomeViewmodel
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.CameraPosition
@@ -93,6 +95,9 @@ fun MapScreen(mapViewModel: MapViewModel, homeViewModel: HomeViewmodel) {
         }
     }
 
+    // Guardamos el valor por defecto en una variable para evitar recalcularlo
+    val unknownMusic = stringResource(R.string.unknown_music)
+
     // Componente principal de Google Maps.
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
@@ -101,7 +106,7 @@ fun MapScreen(mapViewModel: MapViewModel, homeViewModel: HomeViewmodel) {
         properties = MapProperties(isMyLocationEnabled = hasLocationPermission),
         onMapClick = { latLng ->
             // Al hacer clic en el mapa, añadimos un marcador con el artista actual.
-            val artistName = currentPlayer?.artist?.name ?: "Música desconocida"
+            val artistName = currentPlayer?.artist?.name ?: unknownMusic
             mapViewModel.addMusicTag(artistName, latLng)
         }
     ) {
@@ -111,7 +116,7 @@ fun MapScreen(mapViewModel: MapViewModel, homeViewModel: HomeViewmodel) {
             Marker(
                 state = markerState,
                 title = tag.artistName,
-                snippet = "Guardado por ${tag.userName}"
+                snippet = stringResource(R.string.saved_by, tag.userName)
             )
             // Forzamos a que el cuadro de información del marcador esté visible.
             LaunchedEffect(markerState) {

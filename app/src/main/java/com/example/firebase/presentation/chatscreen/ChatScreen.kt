@@ -14,9 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.firebase.R
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -54,7 +56,7 @@ fun ChatScreen(viewmodel: ChatViewModel) {
     ) {
         // Título del Chat
         Text(
-            text = "Chat Global",
+            text = stringResource(R.string.chat_global),
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
@@ -92,7 +94,7 @@ fun ChatScreen(viewmodel: ChatViewModel) {
                 value = textToSend,
                 onValueChange = { textToSend = it }, // Actualiza la variable cada vez que el usuario teclea una letra
                 modifier = Modifier.weight(1f),
-                placeholder = { Text("Escribe un mensaje...") },
+                placeholder = { Text(stringResource(R.string.chat_placeholder)) },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.DarkGray,
                     unfocusedContainerColor = Color.DarkGray,
@@ -117,7 +119,7 @@ fun ChatScreen(viewmodel: ChatViewModel) {
                     .clip(RoundedCornerShape(24.dp))
                     .background(MaterialTheme.colorScheme.primary)
             ) {
-                Icon(Icons.Default.Send, contentDescription = "Enviar", tint = Color.White)
+                Icon(Icons.Default.Send, contentDescription = stringResource(R.string.chat_send), tint = Color.White)
             }
         }
     }

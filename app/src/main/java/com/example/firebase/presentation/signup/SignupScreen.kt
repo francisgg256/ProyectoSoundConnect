@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -27,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,11 +52,15 @@ fun SignupScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    // Estado para permitir scroll en modo horizontal
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Black) // Fondo temático oscuro
-            .padding(horizontal = 32.dp),
+            .padding(horizontal = 32.dp)
+            .verticalScroll(scrollState), // Habilitamos scroll vertical
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
@@ -72,7 +79,7 @@ fun SignupScreen(
         }
 
         // --- CAMPO EMAIL ---
-        Text("Email", color = White, fontWeight = FontWeight.Bold, fontSize = 40.sp)
+        Text(stringResource(R.string.email_label), color = White, fontWeight = FontWeight.Bold, fontSize = 40.sp)
         TextField(
             value = email,
             onValueChange = { email = it },
@@ -88,7 +95,7 @@ fun SignupScreen(
         Spacer(Modifier.height(48.dp))
 
         // --- CAMPO PASSWORD ---
-        Text("Password", color = White, fontWeight = FontWeight.Bold, fontSize = 40.sp)
+        Text(stringResource(R.string.password_label), color = White, fontWeight = FontWeight.Bold, fontSize = 40.sp)
         TextField(
             value = password,
             onValueChange = { password = it },
@@ -104,24 +111,27 @@ fun SignupScreen(
         Spacer(Modifier.height(48.dp))
 
         // --- BOTÓN DE REGISTRO ---
-        Button(onClick = {
-            // Llamamos a la lógica de registro del ViewModel
-            viewModel.signUp(
-                email = email,
-                password = password,
-                onSuccess = {
-                    // Si Firebase crea el usuario con éxito, navegamos al Home
-                    Log.i("Francisco", "Registro OK")
-                    navigateToHome()
-                },
-                onError = {
-                    // Si hay error (ej: email mal formado o ya existente), avisamos al usuario
-                    Log.i("Francisco", "Registro KO")
-                    Toast.makeText(context, "Error al registrarse. Inténtalo de nuevo.", Toast.LENGTH_SHORT).show()
-                }
-            )
-        }) {
-            Text(text = "Sign Up")
+        Button(
+            onClick = {
+                // Llamamos a la lógica de registro del ViewModel
+                viewModel.signUp(
+                    email = email,
+                    password = password,
+                    onSuccess = {
+                        // Si Firebase crea el usuario con éxito, navegamos al Home
+                        Log.i("Francisco", "Registro OK")
+                        navigateToHome()
+                    },
+                    onError = {
+                        // Si hay error, avisamos al usuario
+                        Log.i("Francisco", "Registro KO")
+                        Toast.makeText(context, context.getString(R.string.signup_error), Toast.LENGTH_SHORT).show()
+                    }
+                )
+            },
+            modifier = Modifier.padding(bottom = 32.dp)
+        ) {
+            Text(text = stringResource(R.string.signup_button))
         }
     }
 }

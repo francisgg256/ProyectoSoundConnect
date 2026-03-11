@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState // Necesario para el modo horizontal
+import androidx.compose.foundation.verticalScroll   // Necesario para el modo horizontal
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -27,8 +29,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.firebase.R
@@ -60,7 +62,7 @@ fun LoginScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateBa
                 onError = {
                     Log.i("Ignacio", "LOGIN KO")
                     // Si Firebase falla (contraseña mal), mostramos un Toast en la pantalla
-                    Toast.makeText(context, "Error al iniciar sesión. Revisa tus datos.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.login_error), Toast.LENGTH_SHORT).show()
                 }
             )
         },
@@ -70,7 +72,6 @@ fun LoginScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateBa
 
 // --- 2. FUNCIÓN GRÁFICA (STATELESS / PURA) ---
 // Esta función SÓLO dibuja botones y cajas de texto.
-// No sabe qué es Firebase ni qué es un ViewModel. Solo escupe eventos hacia arriba.
 @Composable
 fun LoginContent(
     onLoginClick: (String, String) -> Unit, // Función Lambda: "Avisaré cuando pulsen el botón y mandaré 2 textos"
@@ -80,11 +81,15 @@ fun LoginContent(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    // Estado del scroll para que la pantalla sea cómoda en horizontal
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Black) // Fondo negro
-            .padding(horizontal = 32.dp),
+            .padding(horizontal = 32.dp)
+            .verticalScroll(scrollState), // Habilita el scroll si el contenido no cabe (ej: modo horizontal)
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // --- BOTÓN DE ATRÁS ---
@@ -98,11 +103,11 @@ fun LoginContent(
                     .size(24.dp)
                     .clickable { navigateBack() } // Dispara el evento de volver a la pantalla inicial
             )
-            Spacer(modifier = Modifier.weight(1f)) // Empuja el resto (nada en este caso) a la derecha
+            Spacer(modifier = Modifier.weight(1f))
         }
 
         // --- CAJA DE TEXTO DEL EMAIL ---
-        Text("Email", color = White, fontWeight = FontWeight.Bold, fontSize = 40.sp)
+        Text(stringResource(R.string.email_label), color = White, fontWeight = FontWeight.Bold, fontSize = 40.sp)
         TextField(
             value = email,
             onValueChange = { email = it }, // Actualiza la variable con cada tecla pulsada
@@ -116,37 +121,29 @@ fun LoginContent(
         Spacer(Modifier.height(48.dp))
 
         // --- CAJA DE TEXTO DE LA CONTRASEÑA ---
-        Text("Password", color = White, fontWeight = FontWeight.Bold, fontSize = 40.sp)
+        Text(stringResource(R.string.password_label), color = White, fontWeight = FontWeight.Bold, fontSize = 40.sp)
         TextField(
             value = password,
             onValueChange = { password = it },
             modifier = Modifier.fillMaxWidth(),
-            // Nota de seguridad: Para un proyecto real, aquí añadiríamos 'visualTransformation = PasswordVisualTransformation()'
-            // para que salgan asteriscos (***) al escribir la clave.
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = UnselectedField,
                 focusedContainerColor = SelectedField
             )
         )
 
+        // Espacio antes del botón
         Spacer(Modifier.height(48.dp))
 
         // --- BOTÓN DE INICIO DE SESIÓN ---
-        Button(onClick = {
-            // Dispara la función lambda hacia arriba, mandando el email y password actuales
-            onLoginClick(email, password)
-        }) {
-            Text(text = "Login")
+        Button(
+            onClick = {
+                // Dispara la función lambda hacia arriba, mandando el email y password actuales
+                onLoginClick(email, password)
+            },
+            modifier = Modifier.padding(bottom = 32.dp) // Margen inferior para que no quede pegado al borde en horizontal
+        ) {
+            Text(text = stringResource(R.string.login_button))
         }
     }
-}
-
-// --- 3. VISTA PREVIA (PREVIEW) ---
-// Sirve para ver el diseño en Android Studio sin tener que compilar y ejecutar la app en el móvil.
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    // ¡Aquí se ve la magia de separar las funciones!
-    // Como LoginContent no necesita ViewModel, podemos previsualizarla pasando funciones vacías { _, _ -> }
-    LoginContent(onLoginClick = { _, _ -> }, navigateBack = {})
 }

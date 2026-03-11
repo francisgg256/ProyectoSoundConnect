@@ -4,4 +4,40 @@
     <string name="facebook_app_id">1237985164611618</string>
     <string name="facebook_client_token">62431c6ca6d7c42b01209efe0d87039b</string>
     <string name="facebook_login_protocol_scheme">fb1237985164611618</string>
+
+    <string name="millions_songs">Millones de canciones.</string>
+    <string name="free_on_app">Gratis en SoundConnect</string>
+    <string name="register_free">Regístrate gratis</string>
+    <string name="continue_google">Continuar con Google</string>
+    <string name="login_text">Iniciar Sesión</string>
+
+    <string name="email_label">Email</string>
+    <string name="password_label">Password</string>
+    <string name="login_button">Login</string>
+    <string name="signup_button">Sign Up</string>
+    <string name="login_error">Error al iniciar sesión. Revisa tus datos.</string>
+    <string name="signup_error">Error al registrarse. Inténtalo de nuevo.</string>
+
+    <string name="welcome_music_lover">¡Hola, amante de la música!</string>
+    <string name="search_hint">Buscar artista en internet...</string>
+    <string name="search_results">Resultados de búsqueda</string>
+    <string name="profile_pic_desc">Foto de perfil</string>
+    <string name="add_photo_desc">Añadir foto</string>
+    <string name="artist_image_desc">Imagen del artista</string>
+    <string name="favorite_desc">Favorito</string>
+    <string name="play_pause_desc">Reproducir / Pausar</string>
+    <string name="close_desc">Cerrar</string>
+
+    <string name="unknown_music">Música desconocida</string>
+    <string name="saved_by">Guardado por %1$s</string>
+    <string name="proximity_title">¡Alguien escuchó música aquí!</string>
+    <string name="proximity_text">Se escuchó a %1$s cerca de tu ubicación.</string>
+
+    <string name="nav_music">Música</string>
+    <string name="nav_map">Mapa</string>
+    <string name="nav_chat">Chat</string>
+
+    <string name="chat_global">Chat Global</string>
+    <string name="chat_placeholder">Escribe un mensaje...</string>
+    <string name="chat_send">Enviar</string>
 </resources>

@@ -3,6 +3,7 @@ package com.example.firebase.presentation.homescreen
 import android.graphics.Bitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatDelegate // Import para el idioma
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,6 +24,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,9 +44,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.os.LocaleListCompat // Import para la lista de idiomas
 import coil.compose.AsyncImage
 import com.example.firebase.R
 import com.example.firebase.data.local.ArtistEntity
@@ -121,7 +126,7 @@ fun HomeScreenContent(
             if (profileImage != null) {
                 Image(
                     bitmap = profileImage.asImageBitmap(), // Convierte el Bitmap normal a uno de Jetpack Compose
-                    contentDescription = "Foto de perfil",
+                    contentDescription = stringResource(R.string.profile_pic_desc),
                     modifier = Modifier
                         .size(60.dp)
                         .clip(CircleShape) // La recorta en forma de círculo perfecto
@@ -132,7 +137,7 @@ fun HomeScreenContent(
                 // Si todavía no hay foto, mostramos un icono gris genérico
                 Icon(
                     imageVector = Icons.Default.Person,
-                    contentDescription = "Añadir foto",
+                    contentDescription = stringResource(R.string.add_photo_desc),
                     tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
                         .size(60.dp)
@@ -144,11 +149,34 @@ fun HomeScreenContent(
             }
             Spacer(modifier = Modifier.width(16.dp))
             Text(
-                text = "¡Hola, amante de la música!",
+                text = stringResource(R.string.welcome_music_lover),
                 color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
+
+            // --- BOTÓN MÁGICO DE IDIOMA ---
+            Spacer(modifier = Modifier.weight(1f)) // Empuja el botón a la derecha del todo
+
+            // Obtenemos el idioma actual que tiene seleccionado la app
+            val currentLocales = AppCompatDelegate.getApplicationLocales()
+            val isEnglish = currentLocales.toLanguageTags().contains("en")
+
+            Button(
+                onClick = {
+                    // Si estamos en inglés, pasamos a español, y viceversa.
+                    val newLocale = if (isEnglish) "es" else "en"
+                    AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(newLocale))
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                // Texto dinámico: si está en inglés, el botón dice "EN", sino "ES"
+                Text(
+                    text = if (isEnglish) "EN" else "ES",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
 
         // --- BARRA DE BÚSQUEDA ---
@@ -161,7 +189,7 @@ fun HomeScreenContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            placeholder = { Text("Buscar artista en internet...") },
+            placeholder = { Text(stringResource(R.string.search_hint)) },
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.DarkGray,
                 unfocusedContainerColor = Color.DarkGray,
@@ -172,7 +200,7 @@ fun HomeScreenContent(
 
         // --- TÍTULO DE LISTA ---
         Text(
-            text = "Resultados de búsqueda",
+            text = stringResource(R.string.search_results),
             color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold,
             fontSize = 24.sp,
@@ -201,7 +229,7 @@ fun HomeScreenContent(
                             .size(60.dp)
                             .clip(CircleShape),
                         model = artist.image?.lastOrNull()?.url ?: "https://via.placeholder.com/150",
-                        contentDescription = "Artist image"
+                        contentDescription = stringResource(R.string.artist_image_desc)
                     )
                     Spacer(modifier = Modifier.size(16.dp))
                     Text(
@@ -216,7 +244,7 @@ fun HomeScreenContent(
                         Icon(
                             // Si isFavorite es true pone el corazón relleno, si no, solo el contorno
                             imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = "Favorite",
+                            contentDescription = stringResource(R.string.favorite_desc),
                             // Si isFavorite es true lo pinta de rojo
                             tint = if (isFavorite) Color.Red else Color.Gray
                         )
@@ -256,7 +284,7 @@ fun PlayerComponent(player: Player, onPlaySelected: () -> Unit, onCancelSelected
         // Botón Play/Pausa
         Image(
             painter = painterResource(id = icon),
-            contentDescription = "play/pause",
+            contentDescription = stringResource(R.string.play_pause_desc),
             modifier = Modifier
                 .size(40.dp)
                 .clickable(onClick = onPlaySelected)
@@ -264,7 +292,7 @@ fun PlayerComponent(player: Player, onPlaySelected: () -> Unit, onCancelSelected
         // Botón Cerrar (X)
         Image(
             painter = painterResource(id = R.drawable.ic_close),
-            contentDescription = "Close",
+            contentDescription = stringResource(R.string.close_desc),
             modifier = Modifier
                 .size(40.dp)
                 .clickable(onClick = onCancelSelected)

@@ -84,6 +84,7 @@ dependencies {
     // PERSISTENCIA LOCAL (ROOM)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.appcompat)
     ksp(libs.androidx.room.compiler) // Procesador de la base de datos local.
 
     // GOOGLE MAPS Y LOCALIZACIÓN
@@ -99,4 +100,8 @@ dependencies {
     // TESTEO
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
+
+    // --- INTERNACIONALIZACIÓN (IDIOMAS) ---
+    // Necesario para usar la API oficial de Google para el cambio de idioma dentro de la app (LocaleListCompat)
+    implementation("androidx.appcompat:appcompat:1.6.1")
 }

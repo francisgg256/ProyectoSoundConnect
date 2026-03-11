@@ -35,7 +35,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Firebase">
+        android:theme="@style/Theme.Firebase"
+        android:localeConfig="@xml/locales_config">
 
         <!-- 5. LLAVE DE GOOGLE MAPS -->
         <!-- Sin esto, el mapa saldría vacío o daría error de autenticación -->

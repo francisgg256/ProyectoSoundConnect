@@ -4,7 +4,8 @@ import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+// import androidx.activity.ComponentActivity <-- BORRADO: Ya no usamos este
+import androidx.appcompat.app.AppCompatActivity // <-- AÑADIDO: Necesario para los idiomas
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -33,7 +35,8 @@ import com.example.firebase.ui.theme.FirebaseTheme
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
-class MainActivity : ComponentActivity() {
+// <-- CAMBIADO: Heredamos de AppCompatActivity para poder cambiar el idioma de la app en vivo
+class MainActivity : AppCompatActivity() {
 
     // --- 1. PROPIEDADES DE NAVEGACIÓN Y ARQUITECTURA ---
     private lateinit var navHostController: NavHostController
@@ -99,22 +102,22 @@ class MainActivity : ComponentActivity() {
                             NavigationBar {
                                 // Item: Música
                                 NavigationBarItem(
-                                    icon = { Icon(Icons.Default.List, contentDescription = "Música") },
-                                    label = { Text("Música") },
+                                    icon = { Icon(Icons.Default.List, contentDescription = stringResource(R.string.nav_music)) },
+                                    label = { Text(stringResource(R.string.nav_music)) },
                                     selected = currentRoute == Screens.Home.route,
                                     onClick = { navHostController.navigate(Screens.Home.route) { launchSingleTop = true } }
                                 )
                                 // Item: Mapa
                                 NavigationBarItem(
-                                    icon = { Icon(Icons.Default.LocationOn, contentDescription = "Mapa") },
-                                    label = { Text("Mapa") },
+                                    icon = { Icon(Icons.Default.LocationOn, contentDescription = stringResource(R.string.nav_map)) },
+                                    label = { Text(stringResource(R.string.nav_map)) },
                                     selected = currentRoute == Screens.Map.route,
                                     onClick = { navHostController.navigate(Screens.Map.route) { launchSingleTop = true } }
                                 )
                                 // Item: Chat
                                 NavigationBarItem(
-                                    icon = { Icon(Icons.Default.Email, contentDescription = "Chat") },
-                                    label = { Text("Chat") },
+                                    icon = { Icon(Icons.Default.Email, contentDescription = stringResource(R.string.nav_chat)) },
+                                    label = { Text(stringResource(R.string.nav_chat)) },
                                     selected = currentRoute == Screens.Chat.route,
                                     onClick = { navHostController.navigate(Screens.Chat.route) { launchSingleTop = true } }
                                 )

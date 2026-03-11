@@ -1,0 +1,39 @@
+<resources>
+    <string name="app_name">SoundConnect</string>
+
+    <string name="millions_songs">Millions of songs.</string>
+    <string name="free_on_app">Free on SoundConnect</string>
+    <string name="register_free">Sign up for free</string>
+    <string name="continue_google">Continue with Google</string>
+    <string name="login_text">Log In</string>
+
+    <string name="email_label">Email</string>
+    <string name="password_label">Password</string>
+    <string name="login_button">Login</string>
+    <string name="signup_button">Sign Up</string>
+    <string name="login_error">Login failed. Please check your credentials.</string>
+    <string name="signup_error">Sign up failed. Please try again.</string>
+
+    <string name="welcome_music_lover">Hello, music lover!</string>
+    <string name="search_hint">Search artist online...</string>
+    <string name="search_results">Search results</string>
+    <string name="profile_pic_desc">Profile picture</string>
+    <string name="add_photo_desc">Add photo</string>
+    <string name="artist_image_desc">Artist image</string>
+    <string name="favorite_desc">Favorite</string>
+    <string name="play_pause_desc">Play / Pause</string>
+    <string name="close_desc">Close</string>
+
+    <string name="unknown_music">Unknown music</string>
+    <string name="saved_by">Saved by %1$s</string>
+    <string name="proximity_title">Someone listened to music here!</string>
+    <string name="proximity_text">%1$s was played near your location.</string>
+
+    <string name="nav_music">Music</string>
+    <string name="nav_map">Map</string>
+    <string name="nav_chat">Chat</string>
+
+    <string name="chat_global">Global Chat</string>
+    <string name="chat_placeholder">Type a message...</string>
+    <string name="chat_send">Send</string>
+</resources>

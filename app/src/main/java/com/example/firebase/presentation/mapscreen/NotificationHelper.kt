@@ -12,7 +12,7 @@ import com.example.firebase.R
 fun showProximityNotification(context: Context, artistName: String) {
     // 1. DEFINICIÓN DEL CANAL (Necesario a partir de Android 8.0 Oreo)
     val channelId = "music_proximity_channel"
-    val notificationManager = context.getSystemService(Context.CONTEXT_IGNORE_SECURITY.toString().let { Context.NOTIFICATION_SERVICE }) as NotificationManager
+    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     // Los "Canales de Notificación" permiten al usuario elegir qué tipo de avisos quiere recibir de la app.
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -27,8 +27,8 @@ fun showProximityNotification(context: Context, artistName: String) {
     // 2. CONSTRUCCIÓN DE LA NOTIFICACIÓN
     val notification = NotificationCompat.Builder(context, channelId)
         .setSmallIcon(R.drawable.ic_launcher_foreground) // Icono que aparece en la barra de estado
-        .setContentTitle("¡Alguien escuchó música aquí!") // Título principal
-        .setContentText("Se escuchó a $artistName cerca de tu ubicación.") // Texto detallado
+        .setContentTitle(context.getString(R.string.proximity_title)) // Título principal
+        .setContentText(context.getString(R.string.proximity_text, artistName)) // Texto detallado
         // Prioridad alta para versiones anteriores a Android 8.0
         .setPriority(NotificationCompat.PRIORITY_HIGH)
         // Hace que la notificación desaparezca automáticamente cuando el usuario la pulsa
