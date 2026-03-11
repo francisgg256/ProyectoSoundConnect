@@ -35,7 +35,6 @@ fun ChatScreen(viewmodel: ChatViewModel) {
         }
     }
 
-    // BASE TOTAL: Un Box que ocupa TODO y tiene el fondo de la app.
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -44,6 +43,8 @@ fun ChatScreen(viewmodel: ChatViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                // AL HABER PUESTO consumeWindowInsets EN EL WRAPPER, AQUÍ SOLO NECESITAMOS imePadding.
+                // Ya no hay hueco blanco, el teclado encajará perfectamente.
                 .imePadding()
         ) {
             // CABECERA CON TÍTULO Y BOTÓN DE BORRAR
@@ -70,7 +71,7 @@ fun ChatScreen(viewmodel: ChatViewModel) {
                 }
             }
 
-            // Lista de mensajes (Ocupa todo el centro)
+            // Lista de mensajes
             LazyColumn(
                 state = listState,
                 modifier = Modifier

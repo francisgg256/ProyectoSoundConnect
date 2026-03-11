@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Green
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -111,9 +110,26 @@ fun InitialScreen(
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        // Textos promocionales
-        Text(stringResource(R.string.millions_songs), color = Color.White, fontSize = 38.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-        Text(stringResource(R.string.free_on_app), color = Color.White, fontSize = 38.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+        // --- TÍTULOS DE CABECERA (CON ARREGLO DE INTERLINEADO) ---
+        Text(
+            text = stringResource(R.string.millions_songs),
+            color = Color.White,
+            fontSize = 38.sp,
+            lineHeight = 44.sp, // <-- ¡ESTA ES LA CLAVE! Separa las líneas si el texto hace salto
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = stringResource(R.string.free_on_app),
+            color = Color.White,
+            fontSize = 38.sp,
+            lineHeight = 44.sp, // <-- ¡AQUÍ TAMBIÉN! Evita que "Gratis en" pise a "SoundConnect"
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
 
         Spacer(modifier = Modifier.height(48.dp))
 
@@ -121,7 +137,7 @@ fun InitialScreen(
         Button(
             onClick = { navigateToSignUp() },
             modifier = Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 32.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Green)
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
         ) {
             Text(text = stringResource(R.string.register_free), color = Color.Black, fontWeight = FontWeight.Bold)
         }

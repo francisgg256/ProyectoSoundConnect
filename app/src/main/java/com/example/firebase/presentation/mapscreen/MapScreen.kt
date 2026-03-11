@@ -53,8 +53,9 @@ fun MapScreen(mapViewModel: MapViewModel, homeViewModel: HomeViewmodel) {
         position = CameraPosition.fromLatLngZoom(LatLng(40.4167, -3.7037), 10f)
     }
 
-    // LaunchedEffect se dispara cuando cambian los marcadores (tags).
-    LaunchedEffect(tags) {
+    // --- 1. PEDIR PERMISOS SOLO UNA VEZ ---
+    // LaunchedEffect(Unit) se dispara SOLO cuando la pantalla se abre por primera vez.
+    LaunchedEffect(Unit) {
         // Preparamos la lista de permisos necesaria según la versión de Android.
         val permissionsToRequest = mutableListOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -67,9 +68,13 @@ fun MapScreen(mapViewModel: MapViewModel, homeViewModel: HomeViewmodel) {
 
         // Lanzamos la solicitud de permisos.
         permissionLauncher.launch(permissionsToRequest.toTypedArray())
+    }
 
-        // LÓGICA DE GEOFENCING: Si hay marcadores, comprobamos nuestra ubicación actual.
-        if (tags.isNotEmpty()) {
+    // --- 2. COMPROBAR DISTANCIAS CADA VEZ QUE HAY NUEVAS CHINCHETAS ---
+    // LaunchedEffect(tags) se dispara cuando cambian los marcadores (tags).
+    LaunchedEffect(tags) {
+        // LÓGICA DE GEOFENCING: Si hay marcadores Y TENEMOS PERMISO, comprobamos nuestra ubicación actual.
+        if (tags.isNotEmpty() && hasLocationPermission) {
             val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 if (location != null) {
