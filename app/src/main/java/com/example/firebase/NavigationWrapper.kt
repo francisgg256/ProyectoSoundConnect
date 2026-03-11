@@ -1,6 +1,9 @@
 package com.example.firebase
 
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -16,8 +19,6 @@ import com.example.firebase.presentation.chatscreen.ChatViewModel
 import com.example.firebase.presentation.mapscreen.MapViewModel
 
 // 1. DEFINICIÓN DE RUTAS (Sealed Class)
-// Usamos una 'sealed class' para que las rutas sean seguras.
-// Es como un menú cerrado: solo puedes navegar a lo que está definido aquí.
 sealed class Screens(val route: String) {
     object Initial : Screens("initial")
     object Login : Screens("login")
@@ -33,11 +34,15 @@ fun NavigationWrapper(
     authViewModel: AuthViewModel,
     homeViewModel: HomeViewmodel,
     chatViewModel: ChatViewModel,
-    mapViewModel: MapViewModel
+    mapViewModel: MapViewModel,
+    paddingValues: PaddingValues // <-- RECIBIMOS LOS PADDINGVALUES DEL SCAFFOLD
 ) {
     // 2. EL CONTENEDOR NAVHOST
-    // Definimos el 'startDestination': la primera pantalla que verá el usuario al abrir la app.
-    NavHost(navController = navHostController, startDestination = Screens.Initial.route) {
+    NavHost(
+        navController = navHostController,
+        startDestination = Screens.Initial.route,
+        modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding()) // Aplicamos solo el bottom padding de la barra de navegación aquí
+    ) {
 
         // --- PANTALLA INICIAL ---
         composable(Screens.Initial.route) {
@@ -46,8 +51,6 @@ fun NavigationWrapper(
                 navigateToLogin = { navHostController.navigate(Screens.Login.route) },
                 navigateToSignUp = { navHostController.navigate(Screens.Signup.route) },
                 navigateToHome = {
-                    // Al ir al Home, usamos popUpTo para limpiar el historial.
-                    // 'inclusive = true' borra la pantalla inicial para que al darle atrás no vuelva al login.
                     navHostController.navigate(Screens.Home.route) {
                         popUpTo(Screens.Initial.route) { inclusive = true }
                     }
@@ -64,7 +67,7 @@ fun NavigationWrapper(
                         popUpTo(Screens.Initial.route) { inclusive = true }
                     }
                 },
-                navigateBack = { navHostController.popBackStack() } // Vuelve a la pantalla anterior
+                navigateBack = { navHostController.popBackStack() }
             )
         }
 
@@ -88,12 +91,12 @@ fun NavigationWrapper(
 
         // --- PANTALLA MAPA ---
         composable(Screens.Map.route) {
-            // Pasamos ambos ViewModels porque el mapa necesita saber qué suena en el Home
             MapScreen(mapViewModel = mapViewModel, homeViewModel = homeViewModel)
         }
 
         // --- PANTALLA CHAT ---
         composable(Screens.Chat.route) {
+            // Pasamos los paddingValues si fuera necesario, pero el NavHost ya los maneja arriba
             ChatScreen(viewmodel = chatViewModel)
         }
     }

@@ -4,10 +4,9 @@ import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.Bundle
-// import androidx.activity.ComponentActivity <-- BORRADO: Ya no usamos este
-import androidx.appcompat.app.AppCompatActivity // <-- AÑADIDO: Necesario para los idiomas
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity // Necesario para la API de idiomas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -18,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.core.view.WindowCompat // <-- IMPORTANTE: Necesario para el fix del teclado
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -35,7 +35,7 @@ import com.example.firebase.ui.theme.FirebaseTheme
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
-// <-- CAMBIADO: Heredamos de AppCompatActivity para poder cambiar el idioma de la app en vivo
+// Heredamos de AppCompatActivity para soportar el cambio de idioma en vivo y compatibilidad de temas
 class MainActivity : AppCompatActivity() {
 
     // --- 1. PROPIEDADES DE NAVEGACIÓN Y ARQUITECTURA ---
@@ -64,11 +64,18 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Habilita que el contenido se dibuje bajo las barras del sistema (Edge to Edge)
+        // --- SOLUCIÓN PARA EL TROZO BLANCO (MÓVILES REALES) ---
+        // 1. Forzamos fondo negro en la ventana para evitar destellos blancos
+        window.setBackgroundDrawableResource(android.R.color.black)
+
+        // 2. Habilita dibujo Edge to Edge
         enableEdgeToEdge()
 
+        // 3. FIX DEFINITIVO: Desactivamos el ajuste automático del sistema.
+        // Esto permite que Compose (imePadding) maneje el teclado sin interferencias blancas del SO.
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         // Inicializamos el detector de agitación.
-        // Cuando detecte un "shake", llamamos a la función de recomendación aleatoria.
         shakeDetector = ShakeDetector {
             homeViewModel.recommendRandomArtist()
         }
@@ -85,7 +92,7 @@ class MainActivity : AppCompatActivity() {
             // darkTheme observa el valor del sensor de luz en tiempo real.
             FirebaseTheme(darkTheme = themeViewModel.isDarkTheme.value) {
 
-                // Scaffold es la estructura básica (hueco para barra superior, inferior y contenido)
+                // Scaffold es la estructura básica
                 Scaffold(
                     bottomBar = {
                         // Lógica para mostrar la barra solo en las pantallas principales
@@ -127,18 +134,17 @@ class MainActivity : AppCompatActivity() {
                 ) { paddingValues ->
                     // El contenido principal de la app
                     Surface(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
+                        modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background
                     ) {
-                        // Invocamos al Wrapper que contiene todas las rutas
+                        // Invocamos al Wrapper que contiene todas las rutas y le pasamos los paddingValues
                         NavigationWrapper(
                             navHostController = navHostController,
                             authViewModel = authViewModel,
                             homeViewModel = homeViewModel,
                             chatViewModel = chatViewModel,
-                            mapViewModel = mapViewModel
+                            mapViewModel = mapViewModel,
+                            paddingValues = paddingValues
                         )
                     }
                 }
