@@ -35,13 +35,10 @@ import com.example.firebase.ui.theme.FirebaseTheme
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
-// Heredamos de AppCompatActivity para soportar el cambio de idioma en vivo y compatibilidad de temas
 class MainActivity : AppCompatActivity() {
 
-    // --- 1. PROPIEDADES DE NAVEGACIÓN Y ARQUITECTURA ---
     private lateinit var navHostController: NavHostController
 
-    // Inyección de Dependencias Manual (usando 'by lazy' para ahorrar memoria hasta que se necesiten)
     private val authRepository by lazy { AuthRepository(Firebase.auth) }
     private val authViewModel by lazy { AuthViewModel(authRepository) }
 
@@ -54,48 +51,34 @@ class MainActivity : AppCompatActivity() {
     private val chatViewModel by lazy { ChatViewModel() }
     private val mapViewModel by lazy { MapViewModel() }
 
-    // ViewModel que controla el tema claro/oscuro dinámico (Sensor de Luz)
     private val themeViewModel = ThemeViewModel()
 
-    // --- 2. PROPIEDADES DE SENSORES (ACELERÓMETRO) ---
     private lateinit var shakeDetector: ShakeDetector
     private var accelerometer: Sensor? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // --- SOLUCIÓN PARA EL TROZO BLANCO (MÓVILES REALES) ---
-        // 1. Forzamos fondo negro en la ventana para evitar destellos blancos
         window.setBackgroundDrawableResource(android.R.color.black)
 
-        // 2. Habilita dibujo Edge to Edge
         enableEdgeToEdge()
 
-        // 3. FIX DEFINITIVO: Desactivamos el ajuste automático del sistema.
-        // Esto permite que Compose (imePadding) maneje el teclado sin interferencias blancas del SO.
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        // Inicializamos el detector de agitación.
         shakeDetector = ShakeDetector {
             homeViewModel.recommendRandomArtist()
         }
 
-        // Accedemos al gestor de sensores del hardware
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
         setContent {
-            // Inicializamos el motor de navegación de Compose
             navHostController = rememberNavController()
 
-            // Aplicamos nuestro Tema Personalizado.
-            // darkTheme observa el valor del sensor de luz en tiempo real.
             FirebaseTheme(darkTheme = themeViewModel.isDarkTheme.value) {
 
-                // Scaffold es la estructura básica
                 Scaffold(
                     bottomBar = {
-                        // Lógica para mostrar la barra solo en las pantallas principales
                         val navBackStackEntry by navHostController.currentBackStackEntryAsState()
                         val currentRoute = navBackStackEntry?.destination?.route
 
@@ -107,21 +90,18 @@ class MainActivity : AppCompatActivity() {
 
                         if (showBottomBar) {
                             NavigationBar {
-                                // Item: Música
                                 NavigationBarItem(
                                     icon = { Icon(Icons.Default.List, contentDescription = stringResource(R.string.nav_music)) },
                                     label = { Text(stringResource(R.string.nav_music)) },
                                     selected = currentRoute == Screens.Home.route,
                                     onClick = { navHostController.navigate(Screens.Home.route) { launchSingleTop = true } }
                                 )
-                                // Item: Mapa
                                 NavigationBarItem(
                                     icon = { Icon(Icons.Default.LocationOn, contentDescription = stringResource(R.string.nav_map)) },
                                     label = { Text(stringResource(R.string.nav_map)) },
                                     selected = currentRoute == Screens.Map.route,
                                     onClick = { navHostController.navigate(Screens.Map.route) { launchSingleTop = true } }
                                 )
-                                // Item: Chat
                                 NavigationBarItem(
                                     icon = { Icon(Icons.Default.Email, contentDescription = stringResource(R.string.nav_chat)) },
                                     label = { Text(stringResource(R.string.nav_chat)) },
@@ -132,12 +112,10 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 ) { paddingValues ->
-                    // El contenido principal de la app
                     Surface(
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background
                     ) {
-                        // Invocamos al Wrapper que contiene todas las rutas y le pasamos los paddingValues
                         NavigationWrapper(
                             navHostController = navHostController,
                             authViewModel = authViewModel,
@@ -152,16 +130,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // --- 3. CICLO DE VIDA Y SENSORES ---
 
     override fun onResume() {
         super.onResume()
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
-        // Empezamos a escuchar al sensor de luz (Modo Oscuro)
         themeViewModel.startListening(sensorManager)
 
-        // Empezamos a escuchar al acelerómetro (Agitar)
         accelerometer?.let {
             sensorManager.registerListener(shakeDetector, it, SensorManager.SENSOR_DELAY_UI)
         }
@@ -171,7 +146,6 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
-        // ¡IMPORTANTE! Liberamos los sensores para no drenar la batería
         themeViewModel.stopListening(sensorManager)
         sensorManager.unregisterListener(shakeDetector)
     }

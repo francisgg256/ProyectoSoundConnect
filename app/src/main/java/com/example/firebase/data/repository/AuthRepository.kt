@@ -8,7 +8,6 @@ class AuthRepository(private val auth: FirebaseAuth) {
 
     fun getCurrentUser(): FirebaseUser? = auth.currentUser
 
-    //recibe el email y la contraseña y onResult que compruebaa que el login haya ido bien o no
     fun login(email: String, password: String, onResult: (Boolean) -> Unit) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
@@ -16,7 +15,6 @@ class AuthRepository(private val auth: FirebaseAuth) {
             }
     }
 
-    //igual que el login pero crea el usuario en firebase
     fun signUp(email: String, password: String, onResult: (Boolean) -> Unit) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
@@ -24,7 +22,6 @@ class AuthRepository(private val auth: FirebaseAuth) {
             }
     }
 
-    //inicia sesion con google y el idtoken que convertimos en una credencial para firebase
     fun loginWithGoogle(idToken: String, onResult: (Boolean) -> Unit) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
 
@@ -34,7 +31,6 @@ class AuthRepository(private val auth: FirebaseAuth) {
             }
     }
 
-    //le dice a Firebase que borre la sesión activa del dispositivo
     fun signOut() {
         auth.signOut()
     }

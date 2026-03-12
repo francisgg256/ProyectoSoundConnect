@@ -11,8 +11,6 @@ class MusicRepository(
     private val artistDao: ArtistDao
 ) {
 
-    // --- FUNCIONES DE INTERNET (DEEZER API) ---
-
     suspend fun searchArtists(query: String): List<Artist> {
         return try {
             val response = apiService.searchArtists(query)
@@ -37,8 +35,6 @@ class MusicRepository(
             null
         }
     }
-
-    // --- FUNCIONES DE BASE DE DATOS LOCAL (ROOM) ---
 
     fun getAllFavorites(): Flow<List<ArtistEntity>> = artistDao.getAllFavorites()
 

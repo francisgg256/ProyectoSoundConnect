@@ -94,8 +94,7 @@ fun InitialScreen(
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        
-        // --- BOTÓN DE IDIOMA EN LA ESQUINA SUPERIOR DERECHA ---
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -122,7 +121,6 @@ fun InitialScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Logo de la app
         Image(
             painter = painterResource(R.drawable.spotify),
             contentDescription = "Logo",
@@ -131,7 +129,6 @@ fun InitialScreen(
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        // Títulos de cabecera con el interlineado arreglado
         Text(
             text = stringResource(R.string.millions_songs),
             color = Color.White,

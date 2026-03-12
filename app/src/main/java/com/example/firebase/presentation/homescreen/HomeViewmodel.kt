@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() {
 
     private var database: FirebaseDatabase = Firebase.database("https://soundconnect-3c760-default-rtdb.europe-west1.firebasedatabase.app")
+
     private var mediaPlayer: MediaPlayer? = null
 
     private val _artist = MutableStateFlow<List<Artist>>(emptyList())
@@ -42,11 +43,16 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
     private val _profileImage = MutableStateFlow<android.graphics.Bitmap?>(null)
     val profileImage: StateFlow<android.graphics.Bitmap?> = _profileImage
 
-    // --- ESTADO DEL NOMBRE DE USUARIO ---
     private val _userName = MutableStateFlow("amante de la música")
     val userName: StateFlow<String> = _userName
 
-    // NUEVA FUNCIÓN: Obliga a leer el nombre de la cuenta que está activa en este momento exacto
+    init {
+        searchArtists("rock")
+        getPlayer()
+        getFavorites()
+        reloadCurrentUser()
+    }
+
     fun reloadCurrentUser() {
         val user = Firebase.auth.currentUser
         _userName.value = user?.displayName?.takeIf { it.isNotBlank() } ?: "amante de la música"
@@ -56,29 +62,22 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
         _profileImage.value = bitmap
     }
 
-    // Función para guardar el nuevo nombre en Firebase
     fun updateUserName(newName: String) {
         if (newName.isBlank()) return
-        
+
         val user = Firebase.auth.currentUser
         val profileUpdates = userProfileChangeRequest {
             displayName = newName
         }
-        
+
         user?.updateProfile(profileUpdates)?.addOnSuccessListener {
             _userName.value = newName
         }
     }
 
-    init {
-        searchArtists("rock")
-        getPlayer()
-        getFavorites()
-        reloadCurrentUser() // Recarga inicial
-    }
-
     fun searchArtists(query: String) {
         if (query.isBlank()) return
+
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val results = musicRepository.searchArtists(query)
@@ -114,6 +113,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
         }
         val ref = database.reference.child("player")
         ref.addValueEventListener(listener)
+
         awaitClose { ref.removeEventListener(listener) }
     }
 
@@ -136,6 +136,7 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
         if (player.value != null) {
             val willPlay = !(player.value?.play ?: false)
             val currentPlayer = _player.value?.copy(play = willPlay)
+
             val ref = database.reference.child("player")
             ref.setValue(currentPlayer)
 
@@ -161,19 +162,10 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
     fun onCancelSelected() {
         val ref = database.reference.child("player")
         ref.setValue(null)
+
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
-    }
-
-    fun recommendRandomArtist() {
-        val randomArtists = listOf(
-            "Michael Jackson", "Queen", "Dua Lipa", "Eminem",
-            "Bad Bunny", "Rosalía", "The Beatles", "Shakira",
-            "AC/DC", "Rihanna", "Frank Sinatra"
-        )
-        val surpriseArtist = randomArtists.random()
-        searchArtists(surpriseArtist)
     }
 
     fun addPlayer(artist: Artist) {
@@ -194,6 +186,16 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
                 }
             }
         }
+    }
+
+    fun recommendRandomArtist() {
+        val randomArtists = listOf(
+            "Michael Jackson", "Queen", "Dua Lipa", "Eminem",
+            "Bad Bunny", "Rosalía", "The Beatles", "Shakira",
+            "AC/DC", "Rihanna", "Frank Sinatra"
+        )
+        val surpriseArtist = randomArtists.random()
+        searchArtists(surpriseArtist)
     }
 
     override fun onCleared() {

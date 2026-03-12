@@ -19,7 +19,6 @@ import com.example.firebase.presentation.chatscreen.ChatScreen
 import com.example.firebase.presentation.chatscreen.ChatViewModel
 import com.example.firebase.presentation.mapscreen.MapViewModel
 
-// 1. DEFINICIÓN DE RUTAS (Sealed Class)
 sealed class Screens(val route: String) {
     object Initial : Screens("initial")
     object Login : Screens("login")

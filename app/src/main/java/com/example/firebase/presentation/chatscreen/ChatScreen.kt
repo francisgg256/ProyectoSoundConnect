@@ -26,7 +26,9 @@ import java.util.*
 @Composable
 fun ChatScreen(viewmodel: ChatViewModel) {
     val messages by viewmodel.chatMessages.collectAsState()
+
     var textToSend by remember { mutableStateOf("") }
+
     val listState = rememberLazyListState()
 
     LaunchedEffect(messages.size) {
@@ -43,11 +45,8 @@ fun ChatScreen(viewmodel: ChatViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                // AL HABER PUESTO consumeWindowInsets EN EL WRAPPER, AQUÍ SOLO NECESITAMOS imePadding.
-                // Ya no hay hueco blanco, el teclado encajará perfectamente.
                 .imePadding()
         ) {
-            // CABECERA CON TÍTULO Y BOTÓN DE BORRAR
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -71,7 +70,6 @@ fun ChatScreen(viewmodel: ChatViewModel) {
                 }
             }
 
-            // Lista de mensajes
             LazyColumn(
                 state = listState,
                 modifier = Modifier
@@ -85,7 +83,6 @@ fun ChatScreen(viewmodel: ChatViewModel) {
                 }
             }
 
-            // BARRA DE ESCRITURA
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.surface,
@@ -110,7 +107,9 @@ fun ChatScreen(viewmodel: ChatViewModel) {
                         ),
                         shape = RoundedCornerShape(24.dp)
                     )
+
                     Spacer(modifier = Modifier.width(8.dp))
+
                     IconButton(
                         onClick = {
                             if (textToSend.isNotBlank()) {
@@ -138,6 +137,7 @@ fun MessageBubble(sender: String, text: String, timestamp: Long) {
 
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Text(text = sender, color = MaterialTheme.colorScheme.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp, bottomStart = 16.dp))

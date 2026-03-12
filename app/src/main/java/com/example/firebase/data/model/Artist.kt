@@ -1,7 +1,7 @@
 package com.example.firebase.data.model
 
 data class Artist(
-    val name: String? = null,  //nombre del artista
-    val listeners: String? = null, //número de oyentes
-    val imageUrl: String? = null //foto del artista
+    val name: String? = null,
+    val listeners: String? = null,
+    val imageUrl: String? = null
 )

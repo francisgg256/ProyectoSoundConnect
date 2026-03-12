@@ -3,7 +3,7 @@ package com.example.firebase.presentation.homescreen
 import android.graphics.Bitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatDelegate // Import para el idioma
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -37,14 +37,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.os.LocaleListCompat // Import para la lista de idiomas
+import androidx.core.os.LocaleListCompat
 import coil.compose.AsyncImage
 import com.example.firebase.R
 import com.example.firebase.data.local.ArtistEntity
 import com.example.firebase.data.model.Artist
 import com.example.firebase.data.model.Player
 
-// 1. PANTALLA ENVOLTORIO (STATE HOISTING)
 @Composable
 fun HomeScreen(viewmodel: HomeViewmodel, onLogoutClick: () -> Unit) {
     val artists by viewmodel.artist.collectAsState()
@@ -53,8 +52,6 @@ fun HomeScreen(viewmodel: HomeViewmodel, onLogoutClick: () -> Unit) {
     val profileImage by viewmodel.profileImage.collectAsState()
     val userName by viewmodel.userName.collectAsState()
 
-    // --- ¡AQUÍ ESTÁ EL ARREGLO! ---
-    // Cada vez que el usuario entre a esta pantalla, obligamos a refrescar el nombre
     LaunchedEffect(Unit) {
         viewmodel.reloadCurrentUser()
     }
@@ -84,7 +81,6 @@ fun HomeScreen(viewmodel: HomeViewmodel, onLogoutClick: () -> Unit) {
     )
 }
 
-// 2. LA INTERFAZ VISUAL REAL (UI)
 @Composable
 fun HomeScreenContent(
     artists: List<Artist>,
@@ -102,8 +98,6 @@ fun HomeScreenContent(
     onFavoriteClick: (Artist) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    
-    // --- VARIABLES PARA EL POPUP DEL NOMBRE ---
     var showNameDialog by remember { mutableStateOf(false) }
     var newNameText by remember { mutableStateOf("") }
 
@@ -112,7 +106,6 @@ fun HomeScreenContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // --- CABECERA (FOTO DE PERFIL Y SALUDO) ---
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -143,8 +136,7 @@ fun HomeScreenContent(
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
-            
-            // --- SALUDO INTERACTIVO ---
+
             Text(
                 text = "¡Hola, $userName!",
                 color = MaterialTheme.colorScheme.onBackground,
@@ -157,7 +149,6 @@ fun HomeScreenContent(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // --- BOTÓN MÁGICO DE IDIOMA ---
             val currentLocales = AppCompatDelegate.getApplicationLocales()
             val isEnglish = currentLocales.toLanguageTags().contains("en")
 
@@ -177,7 +168,6 @@ fun HomeScreenContent(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // --- NUEVO: BOTÓN DE CERRAR SESIÓN ---
             IconButton(
                 onClick = { onLogoutClick() },
                 modifier = Modifier
@@ -192,7 +182,6 @@ fun HomeScreenContent(
             }
         }
 
-        // --- BARRA DE BÚSQUEDA ---
         TextField(
             value = searchQuery,
             onValueChange = {
@@ -211,7 +200,6 @@ fun HomeScreenContent(
             )
         )
 
-        // --- TÍTULO DE LISTA ---
         Text(
             text = stringResource(R.string.search_results),
             color = MaterialTheme.colorScheme.onBackground,
@@ -220,7 +208,6 @@ fun HomeScreenContent(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
 
-        // --- LISTA DE RESULTADOS ---
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(artists) { artist ->
                 val isFavorite = favorites.any { it.name.equals(artist.name, ignoreCase = true) }
@@ -240,14 +227,14 @@ fun HomeScreenContent(
                         contentDescription = stringResource(R.string.artist_image_desc)
                     )
                     Spacer(modifier = Modifier.size(16.dp))
-                    
+
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = artist.name.orEmpty(),
                             color = MaterialTheme.colorScheme.onBackground,
                             fontSize = 20.sp
                         )
-                        
+
                         artist.listeners?.let { oyentes ->
                             Text(
                                 text = "$oyentes fans",
@@ -270,7 +257,6 @@ fun HomeScreenContent(
 
         player?.let { PlayerComponent(it, onPlayClick, onCancelClick) }
 
-        // --- POPUP PARA CAMBIAR EL NOMBRE ---
         if (showNameDialog) {
             AlertDialog(
                 onDismissRequest = { showNameDialog = false },
@@ -300,7 +286,7 @@ fun HomeScreenContent(
     }
 }
 
-// 3. COMPONENTE DEL REPRODUCTOR
+
 @Composable
 fun PlayerComponent(player: Player, onPlaySelected: () -> Unit, onCancelSelected: () -> Unit) {
     val icon = if (player.play == true) R.drawable.ic_pause else R.drawable.ic_play
