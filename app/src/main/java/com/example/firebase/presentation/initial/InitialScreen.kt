@@ -3,12 +3,15 @@ package com.example.firebase.presentation.initial
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.os.LocaleListCompat
 import com.example.firebase.R
 import com.example.firebase.presentation.auth.AuthViewModel
 import com.example.firebase.ui.theme.BackgroundButton
@@ -48,17 +52,13 @@ import com.google.android.gms.common.api.ApiException
 
 @Composable
 fun InitialScreen(
-    // Recibe el ViewModel de autenticación
     viewModel: AuthViewModel? = null,
-    // Recibe FUNCIONES LAMBDA para la navegación.
     navigateToLogin: () -> Unit = {},
     navigateToSignUp: () -> Unit = {},
     navigateToHome: () -> Unit = {}
 ) {
-    // Obtenemos el contexto actual
     val context = LocalContext.current
 
-    // --- 1. CONFIGURACIÓN DEL CLIENTE DE GOOGLE ---
     val googleSignInClient = remember {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(context.getString(R.string.default_web_client_id))
@@ -67,7 +67,6 @@ fun InitialScreen(
         GoogleSignIn.getClient(context, gso)
     }
 
-    // --- 2. EL LANZADOR DE LA VENTANA DE GOOGLE ---
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -75,7 +74,6 @@ fun InitialScreen(
         try {
             val account = task.getResult(ApiException::class.java)
             account?.idToken?.let { idToken ->
-                // ¡AQUÍ CONECTAMOS GOOGLE CON FIREBASE!
                 viewModel?.loginWithGoogle(
                     idToken = idToken,
                     onSuccess = { navigateToHome() },
@@ -87,19 +85,42 @@ fun InitialScreen(
         }
     }
 
-    // Estado del scroll para que funcione bien tumbado
     val scrollState = rememberScrollState()
 
-    // --- 3. INTERFAZ GRÁFICA (UI) ---
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Brush.verticalGradient(listOf(Gray, Black), startY = 0f, endY = 600f))
-            .verticalScroll(scrollState), // Scroll añadido
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // En modo scroll usamos alturas fijas para que se vea bien en horizontal
-        Spacer(modifier = Modifier.height(64.dp))
+        
+        // --- BOTÓN DE IDIOMA EN LA ESQUINA SUPERIOR DERECHA ---
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
+            val currentLocales = AppCompatDelegate.getApplicationLocales()
+            val isEnglish = currentLocales.toLanguageTags().contains("en")
+
+            Button(
+                onClick = {
+                    val newLocale = if (isEnglish) "es" else "en"
+                    AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(newLocale))
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
+            ) {
+                Text(
+                    text = if (isEnglish) "EN" else "ES",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Logo de la app
         Image(
@@ -110,12 +131,12 @@ fun InitialScreen(
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        // --- TÍTULOS DE CABECERA (CON ARREGLO DE INTERLINEADO) ---
+        // Títulos de cabecera con el interlineado arreglado
         Text(
             text = stringResource(R.string.millions_songs),
             color = Color.White,
             fontSize = 38.sp,
-            lineHeight = 44.sp, // <-- ¡ESTA ES LA CLAVE! Separa las líneas si el texto hace salto
+            lineHeight = 44.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
@@ -126,14 +147,13 @@ fun InitialScreen(
             text = stringResource(R.string.free_on_app),
             color = Color.White,
             fontSize = 38.sp,
-            lineHeight = 44.sp, // <-- ¡AQUÍ TAMBIÉN! Evita que "Gratis en" pise a "SoundConnect"
+            lineHeight = 44.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        // --- BOTÓN DE REGISTRO ---
         Button(
             onClick = { navigateToSignUp() },
             modifier = Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 32.dp),
@@ -144,20 +164,16 @@ fun InitialScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- BOTÓN DE GOOGLE (Componente Personalizado) ---
         CustomButton(
             Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 32.dp)
                 .background(BackgroundButton).border(2.dp, ShapeButton, CircleShape)
-                .clickable {
-                    launcher.launch(googleSignInClient.signInIntent)
-                },
+                .clickable { launcher.launch(googleSignInClient.signInIntent) },
             painterResource(R.drawable.google),
             stringResource(R.string.continue_google)
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // --- TEXTO PARA INICIAR SESIÓN ---
         Text(
             text = stringResource(R.string.login_text),
             color = Color.White,
@@ -169,7 +185,6 @@ fun InitialScreen(
     }
 }
 
-// --- 4. COMPONENTE REUTILIZABLE (CUSTOM BUTTON) ---
 @Composable
 fun CustomButton(modifier: Modifier, painter: Painter, title: String) {
     Box(modifier = modifier, contentAlignment = Alignment.CenterStart) {

@@ -2,7 +2,7 @@ package com.example.firebase
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.consumeWindowInsets // <-- NUEVO IMPORT
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -46,7 +46,6 @@ fun NavigationWrapper(
                 top = paddingValues.calculateTopPadding(),
                 bottom = paddingValues.calculateBottomPadding()
             )
-            // ¡ESTA ES LA LÍNEA MÁGICA QUE EVITA EL HUECO BLANCO DEL CHAT!
             .consumeWindowInsets(paddingValues)
     ) {
 
@@ -81,7 +80,17 @@ fun NavigationWrapper(
             )
         }
 
-        composable(Screens.Home.route) { HomeScreen(viewmodel = homeViewModel) }
+        composable(Screens.Home.route) { 
+            HomeScreen(
+                viewmodel = homeViewModel,
+                onLogoutClick = {
+                    authViewModel.logout()
+                    navHostController.navigate(Screens.Initial.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            ) 
+        }
 
         composable(Screens.Map.route) { MapScreen(mapViewModel = mapViewModel, homeViewModel = homeViewModel) }
 

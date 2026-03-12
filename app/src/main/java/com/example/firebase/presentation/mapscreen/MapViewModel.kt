@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.firebase.data.model.MusicTag
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -37,12 +38,16 @@ class MapViewModel : ViewModel() {
         // .push() crea una nueva ubicación única en Firebase para este marcador.
         val ref = database.reference.child("music_tags").push()
 
-        // Creamos el objeto MusicTag con los datos recibidos.
+        // --- MAGIA: Leemos el nombre real del usuario de Firebase ---
+        val senderName = Firebase.auth.currentUser?.displayName?.takeIf { it.isNotBlank() } ?: "Amante de la música"
+
+        // Creamos el objeto MusicTag con los datos recibidos y el nombre.
         val newTag = MusicTag(
             id = ref.key ?: "", // Usamos la clave única generada por Firebase.
             artistName = artistName,
             lat = latLng.latitude,
-            lng = latLng.longitude
+            lng = latLng.longitude,
+            userName = senderName // <-- ¡AQUÍ LE PASAMOS EL NOMBRE AL MAPA!
         )
         // Subimos el marcador a la nube.
         ref.setValue(newTag)

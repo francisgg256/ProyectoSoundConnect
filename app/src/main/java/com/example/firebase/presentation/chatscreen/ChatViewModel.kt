@@ -3,6 +3,7 @@ package com.example.firebase.presentation.chatscreen
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.firebase.data.model.ChatMessage
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -31,9 +32,12 @@ class ChatViewModel : ViewModel() {
 
         val ref = database.reference.child("chat_messages").push()
 
+        // Leemos el nombre real de Firebase Auth. Si está vacío, ponemos el de por defecto.
+        val senderName = Firebase.auth.currentUser?.displayName?.takeIf { it.isNotBlank() } ?: "Amante de la música"
+
         val newMessage = ChatMessage(
             id = ref.key ?: "",
-            userName = "Amante de la música",
+            userName = senderName,
             text = text,
             timestamp = System.currentTimeMillis()
         )
@@ -72,7 +76,7 @@ class ChatViewModel : ViewModel() {
         ref.removeValue()
             .addOnSuccessListener {
                 Log.i("SoundConnect", "Chat vaciado correctamente")
-                _chatMessages.value = emptyList() // Limpiamos localmente para feedback inmediato
+                _chatMessages.value = emptyList()
             }
             .addOnFailureListener {
                 Log.e("SoundConnect", "Error al vaciar el chat: ${it.message}")

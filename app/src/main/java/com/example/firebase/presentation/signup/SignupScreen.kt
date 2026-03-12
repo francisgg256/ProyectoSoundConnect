@@ -13,17 +13,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color.Companion.White
@@ -31,6 +27,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.firebase.R
@@ -45,26 +44,23 @@ fun SignupScreen(
     navigateToHome: () -> Unit,
     navigateBack: () -> Unit
 ) {
-    // Obtenemos el contexto para poder lanzar el Toast en caso de error
     val context = LocalContext.current
 
-    // ESTADOS LOCALES: Guardan lo que el usuario escribe antes de darle al botón
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
 
-    // Estado para permitir scroll en modo horizontal
     val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Black) // Fondo temático oscuro
+            .background(Black)
             .padding(horizontal = 32.dp)
-            .verticalScroll(scrollState), // Habilitamos scroll vertical
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // --- BOTÓN VOLVER ---
         Row(){
             Icon(
                 painter = painterResource(id = R.drawable.ic_back_24),
@@ -73,12 +69,11 @@ fun SignupScreen(
                 modifier = Modifier
                     .padding(vertical = 24.dp)
                     .size(24.dp)
-                    .clickable { navigateBack() } // Ejecuta el lambda de navegación hacia atrás
+                    .clickable { navigateBack() }
             )
             Spacer(modifier = Modifier.weight(1f))
         }
 
-        // --- CAMPO EMAIL ---
         Text(stringResource(R.string.email_label), color = White, fontWeight = FontWeight.Bold, fontSize = 40.sp)
         TextField(
             value = email,
@@ -94,12 +89,21 @@ fun SignupScreen(
 
         Spacer(Modifier.height(48.dp))
 
-        // --- CAMPO PASSWORD ---
         Text(stringResource(R.string.password_label), color = White, fontWeight = FontWeight.Bold, fontSize = 40.sp)
         TextField(
             value = password,
             onValueChange = { password = it },
             modifier = Modifier.fillMaxWidth(),
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                val description = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
+
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(imageVector = image, contentDescription = description, tint = White)
+                }
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = UnselectedField,
                 focusedContainerColor = SelectedField,
@@ -110,20 +114,16 @@ fun SignupScreen(
 
         Spacer(Modifier.height(48.dp))
 
-        // --- BOTÓN DE REGISTRO ---
         Button(
             onClick = {
-                // Llamamos a la lógica de registro del ViewModel
                 viewModel.signUp(
                     email = email,
                     password = password,
                     onSuccess = {
-                        // Si Firebase crea el usuario con éxito, navegamos al Home
                         Log.i("Francisco", "Registro OK")
                         navigateToHome()
                     },
                     onError = {
-                        // Si hay error, avisamos al usuario
                         Log.i("Francisco", "Registro KO")
                         Toast.makeText(context, context.getString(R.string.signup_error), Toast.LENGTH_SHORT).show()
                     }

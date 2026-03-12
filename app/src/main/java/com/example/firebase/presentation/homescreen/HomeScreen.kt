@@ -24,14 +24,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,11 +46,18 @@ import com.example.firebase.data.model.Player
 
 // 1. PANTALLA ENVOLTORIO (STATE HOISTING)
 @Composable
-fun HomeScreen(viewmodel: HomeViewmodel) {
+fun HomeScreen(viewmodel: HomeViewmodel, onLogoutClick: () -> Unit) {
     val artists by viewmodel.artist.collectAsState()
     val player by viewmodel.player.collectAsState()
     val favorites by viewmodel.favorites.collectAsState()
     val profileImage by viewmodel.profileImage.collectAsState()
+    val userName by viewmodel.userName.collectAsState()
+
+    // --- ¡AQUÍ ESTÁ EL ARREGLO! ---
+    // Cada vez que el usuario entre a esta pantalla, obligamos a refrescar el nombre
+    LaunchedEffect(Unit) {
+        viewmodel.reloadCurrentUser()
+    }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
@@ -71,6 +72,9 @@ fun HomeScreen(viewmodel: HomeViewmodel) {
         favorites = favorites,
         player = player,
         profileImage = profileImage,
+        userName = userName,
+        onLogoutClick = onLogoutClick,
+        onNameChange = { viewmodel.updateUserName(it) },
         onCameraClick = { cameraLauncher.launch(null) },
         onArtistClick = { viewmodel.addPlayer(it) },
         onPlayClick = { viewmodel.onPlaySelected() },
@@ -87,6 +91,9 @@ fun HomeScreenContent(
     favorites: List<ArtistEntity>,
     player: Player?,
     profileImage: Bitmap?,
+    userName: String,
+    onLogoutClick: () -> Unit,
+    onNameChange: (String) -> Unit,
     onCameraClick: () -> Unit,
     onArtistClick: (Artist) -> Unit,
     onPlayClick: () -> Unit,
@@ -95,6 +102,10 @@ fun HomeScreenContent(
     onFavoriteClick: (Artist) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    
+    // --- VARIABLES PARA EL POPUP DEL NOMBRE ---
+    var showNameDialog by remember { mutableStateOf(false) }
+    var newNameText by remember { mutableStateOf("") }
 
     Column(
         Modifier
@@ -133,18 +144,17 @@ fun HomeScreenContent(
             }
             Spacer(modifier = Modifier.width(16.dp))
             
-            // --- SALUDO (CON ARREGLO DE PESO) ---
+            // --- SALUDO INTERACTIVO ---
             Text(
-                text = stringResource(R.string.welcome_music_lover),
+                text = "¡Hola, $userName!",
                 color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                // Al ponerle weight(1f), el texto se adapta al espacio sobrante
-                // y evita empujar al botón fuera de la pantalla.
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { showNameDialog = true }
             )
 
-            // Margen de seguridad entre el texto y el botón
             Spacer(modifier = Modifier.width(8.dp))
 
             // --- BOTÓN MÁGICO DE IDIOMA ---
@@ -162,6 +172,22 @@ fun HomeScreenContent(
                     text = if (isEnglish) "EN" else "ES",
                     color = Color.White,
                     fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // --- NUEVO: BOTÓN DE CERRAR SESIÓN ---
+            IconButton(
+                onClick = { onLogoutClick() },
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(Color.Red.copy(alpha = 0.2f))
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ExitToApp,
+                    contentDescription = "Cerrar Sesión",
+                    tint = Color.Red
                 )
             }
         }
@@ -210,16 +236,26 @@ fun HomeScreenContent(
                         modifier = Modifier
                             .size(60.dp)
                             .clip(CircleShape),
-                        model = artist.image?.lastOrNull()?.url ?: "https://via.placeholder.com/150",
+                        model = artist.imageUrl ?: "https://via.placeholder.com/150",
                         contentDescription = stringResource(R.string.artist_image_desc)
                     )
                     Spacer(modifier = Modifier.size(16.dp))
-                    Text(
-                        text = artist.name.orEmpty(),
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontSize = 20.sp,
-                        modifier = Modifier.weight(1f)
-                    )
+                    
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = artist.name.orEmpty(),
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontSize = 20.sp
+                        )
+                        
+                        artist.listeners?.let { oyentes ->
+                            Text(
+                                text = "$oyentes fans",
+                                color = Color.Gray,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
 
                     IconButton(onClick = { onFavoriteClick(artist) }) {
                         Icon(
@@ -233,6 +269,34 @@ fun HomeScreenContent(
         }
 
         player?.let { PlayerComponent(it, onPlayClick, onCancelClick) }
+
+        // --- POPUP PARA CAMBIAR EL NOMBRE ---
+        if (showNameDialog) {
+            AlertDialog(
+                onDismissRequest = { showNameDialog = false },
+                title = { Text("¿Cómo te llamas?", fontWeight = FontWeight.Bold) },
+                text = {
+                    TextField(
+                        value = newNameText,
+                        onValueChange = { newNameText = it },
+                        placeholder = { Text("Escribe tu nombre") }
+                    )
+                },
+                confirmButton = {
+                    Button(onClick = {
+                        onNameChange(newNameText)
+                        showNameDialog = false
+                    }) {
+                        Text("Guardar")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { showNameDialog = false }, colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)) {
+                        Text("Cancelar")
+                    }
+                }
+            )
+        }
     }
 }
 
