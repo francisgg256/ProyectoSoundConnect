@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.firebase.data.model.MusicTag
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -21,29 +22,45 @@ class MapViewModel : ViewModel() {
     private val _musicTags = MutableStateFlow<List<MusicTag>>(emptyList())
     val musicTags: StateFlow<List<MusicTag>> = _musicTags
 
+    private var valueEventListener: ValueEventListener? = null
+    private var currentRef: com.google.firebase.database.DatabaseReference? = null
+
     init {
-        getMusicTags()
+        FirebaseAuth.getInstance().addAuthStateListener { auth ->
+            val uid = auth.currentUser?.uid
+            if (uid != null) {
+                getAllMusicTags()
+            } else {
+                removeListener()
+                _musicTags.value = emptyList() 
+            }
+        }
     }
 
     fun addMusicTag(artistName: String, latLng: LatLng) {
-        val ref = database.reference.child("music_tags").push()
+        val user = Firebase.auth.currentUser
+        val uid = user?.uid ?: return
 
-        val senderName = Firebase.auth.currentUser?.displayName?.takeIf { it.isNotBlank() } ?: "Amante de la música"
+        val ref = database.reference.child("music_tags").push()
+        val senderName = user.displayName?.takeIf { it.isNotBlank() } ?: "Amante de la música"
 
         val newTag = MusicTag(
             id = ref.key ?: "",
             artistName = artistName,
             lat = latLng.latitude,
             lng = latLng.longitude,
-            userName = senderName
+            userName = senderName,
+            userId = uid
         )
         ref.setValue(newTag)
     }
 
-    private fun getMusicTags() {
-        val ref = database.reference.child("music_tags")
+    private fun getAllMusicTags() {
+        removeListener() 
 
-        ref.addValueEventListener(object : ValueEventListener {
+        currentRef = database.reference.child("music_tags")
+
+        valueEventListener = currentRef?.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val tagsList = mutableListOf<MusicTag>()
                 for (child in snapshot.children) {
@@ -57,5 +74,16 @@ class MapViewModel : ViewModel() {
                 Log.e("SoundConnect", "Error al leer chinchetas: ${error.message}")
             }
         })
+    }
+
+    private fun removeListener() {
+        valueEventListener?.let { listener ->
+            currentRef?.removeEventListener(listener)
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        removeListener()
     }
 }

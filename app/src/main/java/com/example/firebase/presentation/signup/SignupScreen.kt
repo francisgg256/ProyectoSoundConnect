@@ -44,7 +44,16 @@ fun SignupScreen(
     navigateToHome: () -> Unit,
     navigateBack: () -> Unit
 ) {
+    val errorMessage by viewModel.errorMessage.collectAsState()
+
     val context = LocalContext.current
+
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            viewModel.clearError() 
+        }
+    }
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -125,7 +134,6 @@ fun SignupScreen(
                     },
                     onError = {
                         Log.i("Francisco", "Registro KO")
-                        Toast.makeText(context, context.getString(R.string.signup_error), Toast.LENGTH_SHORT).show()
                     }
                 )
             },

@@ -40,7 +40,16 @@ import com.example.firebase.ui.theme.UnselectedField
 
 @Composable
 fun LoginScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateBack: () -> Unit) {
+    val errorMessage by viewModel.errorMessage.collectAsState()
+
     val context = LocalContext.current
+
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            viewModel.clearError() 
+        }
+    }
 
     LoginContent(
         onLoginClick = { email, password ->
@@ -53,7 +62,6 @@ fun LoginScreen(viewModel: AuthViewModel, navigateToHome: () -> Unit, navigateBa
                 },
                 onError = {
                     Log.i("Ignacio", "LOGIN KO")
-                    Toast.makeText(context, context.getString(R.string.login_error), Toast.LENGTH_SHORT).show()
                 }
             )
         },

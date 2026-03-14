@@ -83,6 +83,7 @@ fun NavigationWrapper(
             HomeScreen(
                 viewmodel = homeViewModel,
                 onLogoutClick = {
+                    homeViewModel.clearSessionState()
                     authViewModel.logout()
                     navHostController.navigate(Screens.Initial.route) {
                         popUpTo(0) { inclusive = true }

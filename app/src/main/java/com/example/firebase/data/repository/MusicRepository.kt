@@ -11,6 +11,7 @@ class MusicRepository(
     private val artistDao: ArtistDao
 ) {
 
+
     suspend fun searchArtists(query: String): List<Artist> {
         return try {
             val response = apiService.searchArtists(query)
@@ -36,12 +37,12 @@ class MusicRepository(
         }
     }
 
-    fun getAllFavorites(): Flow<List<ArtistEntity>> = artistDao.getAllFavorites()
+    fun getAllFavorites(userId: String): Flow<List<ArtistEntity>> = artistDao.getAllFavorites(userId)
 
-    suspend fun toggleFavorite(artist: Artist) {
+    suspend fun toggleFavorite(artist: Artist, userId: String) {
         val name = artist.name ?: return
 
-        val existingFavorite = artistDao.getFavoriteByName(name)
+        val existingFavorite = artistDao.getFavoriteByName(name, userId)
 
         if (existingFavorite != null) {
             artistDao.deleteFavorite(existingFavorite)
@@ -49,7 +50,8 @@ class MusicRepository(
             val entity = ArtistEntity(
                 name = name,
                 listeners = artist.listeners,
-                imageUrl = artist.imageUrl
+                imageUrl = artist.imageUrl,
+                userId = userId
             )
             artistDao.insertFavorite(entity)
         }

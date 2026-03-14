@@ -9,8 +9,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ArtistDao {
-    @Query("SELECT * FROM favorite_artists")
-    fun getAllFavorites(): Flow<List<ArtistEntity>>
+
+    @Query("SELECT * FROM favorite_artists WHERE userId = :userId")
+    fun getAllFavorites(userId: String): Flow<List<ArtistEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertFavorite(artist: ArtistEntity)
@@ -18,6 +19,6 @@ interface ArtistDao {
     @Delete
     suspend fun deleteFavorite(artist: ArtistEntity)
 
-    @Query("SELECT * FROM favorite_artists WHERE name = :artistName LIMIT 1")
-    suspend fun getFavoriteByName(artistName: String): ArtistEntity?
+    @Query("SELECT * FROM favorite_artists WHERE name = :artistName AND userId = :userId LIMIT 1")
+    suspend fun getFavoriteByName(artistName: String, userId: String): ArtistEntity?
 }

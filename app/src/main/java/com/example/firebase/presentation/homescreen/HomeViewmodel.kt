@@ -8,6 +8,7 @@ import com.example.firebase.data.local.ArtistEntity
 import com.example.firebase.data.model.Artist
 import com.example.firebase.data.model.Player
 import com.example.firebase.data.repository.MusicRepository
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.ktx.userProfileChangeRequest
 import com.google.firebase.database.DataSnapshot
@@ -28,7 +29,6 @@ import kotlinx.coroutines.launch
 class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() {
 
     private var database: FirebaseDatabase = Firebase.database("https://soundconnect-3c760-default-rtdb.europe-west1.firebasedatabase.app")
-
     private var mediaPlayer: MediaPlayer? = null
 
     private val _artist = MutableStateFlow<List<Artist>>(emptyList())
@@ -49,13 +49,43 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
     init {
         searchArtists("rock")
         getPlayer()
-        getFavorites()
         reloadCurrentUser()
+
+        FirebaseAuth.getInstance().addAuthStateListener { auth ->
+            val uid = auth.currentUser?.uid
+            if (uid != null) {
+                Log.i("SoundConnect", "Firebase despertó. Cargando base de datos del usuario: $uid")
+                loadFavorites(uid)
+            }
+        }
     }
 
     fun reloadCurrentUser() {
         val user = Firebase.auth.currentUser
         _userName.value = user?.displayName?.takeIf { it.isNotBlank() } ?: "amante de la música"
+    }
+
+    private fun loadFavorites(uid: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            musicRepository.getAllFavorites(uid).collect { favList ->
+                Log.i("SoundConnect", "ÉXITO: La pantalla se ha actualizado con ${favList.size} favoritos.")
+                _favorites.value = favList
+            }
+        }
+    }
+
+    fun onFavoriteClick(artist: Artist) {
+        val currentUserId = Firebase.auth.currentUser?.uid 
+        
+        if (currentUserId == null) {
+            Log.e("SoundConnect", "ERROR: No hay usuario al intentar guardar el favorito.")
+            return
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            Log.i("SoundConnect", "Guardando/Borrando de la base de datos a: ${artist.name}")
+            musicRepository.toggleFavorite(artist, currentUserId)
+        }
     }
 
     fun updateProfileImage(bitmap: android.graphics.Bitmap) {
@@ -85,20 +115,6 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
             } catch (e: Exception) {
                 Log.e("SoundConnect", "Error buscando en API: ${e.message}")
             }
-        }
-    }
-
-    private fun getFavorites() {
-        viewModelScope.launch(Dispatchers.IO) {
-            musicRepository.getAllFavorites().collect { favList ->
-                _favorites.value = favList
-            }
-        }
-    }
-
-    fun onFavoriteClick(artist: Artist) {
-        viewModelScope.launch(Dispatchers.IO) {
-            musicRepository.toggleFavorite(artist)
         }
     }
 
@@ -196,6 +212,12 @@ class HomeViewmodel(private val musicRepository: MusicRepository) : ViewModel() 
         )
         val surpriseArtist = randomArtists.random()
         searchArtists(surpriseArtist)
+    }
+
+    fun clearSessionState() {
+        _profileImage.value = null
+        _favorites.value = emptyList()
+        _player.value = null
     }
 
     override fun onCleared() {

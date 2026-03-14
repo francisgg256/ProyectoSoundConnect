@@ -1,14 +1,11 @@
 package com.example.firebase.data.local
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
 
-@Entity(tableName = "favorite_artists")
+@Entity(tableName = "favorite_artists", primaryKeys = ["name", "userId"])
 data class ArtistEntity(
-
-    @PrimaryKey val name: String,
-
+    val name: String,
     val listeners: String?,
-
-    val imageUrl: String?
+    val imageUrl: String?,
+    val userId: String
 )
