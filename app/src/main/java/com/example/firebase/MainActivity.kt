@@ -132,7 +132,11 @@ class MainActivity : AppCompatActivity() {
 
 
     override fun onResume() {
-        super.onResume()
+        try {
+            super.onResume()
+        } catch (e: ClassCastException) {
+            // Workaround for MIUI ClassCastException in ActivityInjector
+        }
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
         themeViewModel.startListening(sensorManager)
@@ -143,7 +147,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onPause() {
-        super.onPause()
+        try {
+            super.onPause()
+        } catch (e: ClassCastException) {
+            // Workaround for MIUI ClassCastException in ActivityInjector
+        }
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
         themeViewModel.stopListening(sensorManager)
